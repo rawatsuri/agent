@@ -1,0 +1,40 @@
+# Voice Bridge - Python Service Requirements
+# Self-hosted Vocode for telephony integration
+
+# Core Framework
+fastapi==0.111.0
+uvicorn[standard]==0.30.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+gunicorn>=23.0.0
+
+# Vocode Core (Open Source)
+vocode==0.1.113
+twilio>=8.0.0
+
+# Speech Recognition (STT)
+faster-whisper>=1.0.0
+openai-whisper>=20230314
+deepgram-sdk>=3.0.0
+numpy>=1.24.0
+
+# Audio Processing
+pydub==0.25.1
+soundfile==0.12.1
+pyaudio==0.2.14
+
+# Azure Text-to-Speech
+azure-cognitiveservices-speech>=1.40.0
+
+# HTTP Client for Node.js communication
+httpx>=0.27.0
+requests>=2.32.0
+
+# Environment Variables
+python-dotenv==1.0.1
+
+# Logging
+loguru==0.7.2
+
+# Production
+websockets>=12.0,<13.0

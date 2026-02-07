@@ -1,0 +1,985 @@
+// Omnichannel AI Platform - Prisma Schema
+// Multi-tenant B2B2C Architecture
+// Phase 1: Foundation & Cost Control (Complete)
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [pgvector(map: "vector")]
+  
+  // Connection pooling configuration (production)
+  // Use connection pooler (PgBouncer) on port 6543
+  // DATABASE_URL should include: pgbouncer=true&connection_limit=20&pool_timeout=10
+  // DIRECT_URL should use port 5432 for migrations
+}
+
+// ============================================
+// BUSINESS LAYER (Your Customers - B2B)
+// ============================================
+
+model Business {
+  id        String   @id @default(uuid())
+  clerkId   String   @unique // Clerk user ID for authentication
+  name      String
+  industry  String? // real-estate, healthcare, restaurant, etc.
+  phone     String?
+  email     String?
+  apiKey    String   @unique @default(uuid()) // For API access (TODO: Hash in application layer)
+  config    Json? // AI configuration, prompts, triggers
+  active    Boolean  @default(true)
+  
+  // Channel enablement - what channels this business purchased/can use
+  // Admin configures this based on client's package
+  // Examples: ["CHAT"], ["VOICE"], ["CHAT", "VOICE", "WHATSAPP"]
+  enabledChannels Channel[] // Empty array = suspended or no channels allowed
+  
+  // Service tier configuration (Admin-controlled)
+  // Admin assigns quality tier based on what client pays
+  aiModel            String   @default("gpt-4o-mini") // gpt-3.5-turbo, gpt-4o-mini, gpt-4o, gpt-4-turbo
+  ttsProvider        String   @default("azure")       // azure, elevenlabs, google
+  ttsVoiceId         String   @default("en-US-JennyNeural")
+  defaultLanguage    String   @default("en")          // Primary language
+  supportedLanguages String[] @default(["en"])        // All supported languages
+  
+  // Voice telephony provider (Admin-controlled)
+  // twilio = Global (higher cost), exotel = India (30-40% cheaper)
+  voiceProvider      String   @default("twilio")      // twilio, exotel
+  twilioPhoneNumber  String?                          // Twilio number for this business
+  exotelPhoneNumber  String?                          // Exotel number for this business (India)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships - Core
+  customers     Customer[]
+  conversations Conversation[]
+  
+  // Phase 1: Cost Control & Budget
+  credits         BusinessCredit?
+  rateConfig      RateLimitConfig?
+  costLogs        CostLog[]
+  
+  // Phase 1: Cache System
+  responseCaches  ResponseCache[]
+  faqs            BusinessFAQ[]
+  
+  // Phase 1: Campaigns
+  campaigns       Campaign[]
+
+  @@index([clerkId])
+  @@index([apiKey])
+  @@index([aiModel])
+  @@index([ttsProvider])
+  @@index([defaultLanguage])
+  @@map("businesses")
+}
+
+// ============================================
+// CUSTOMER LAYER (End Users - B2C)
+// ============================================
+
+model Customer {
+  id         String   @id @default(uuid())
+  businessId String // Which business this customer belongs to
+  phone      String? // Primary identifier for voice/SMS
+  email      String? // Primary identifier for email
+  name       String?
+  metadata   Json? // Custom fields per business
+  preferences Json? // Language, timezone, notification preferences
+  tags       String[] // For segmentation
+  
+  // Phase 1: Trust & Verification
+  trustScore       Int       @default(0) // 0-100, new customers start at 0
+  isVerified       Boolean   @default(false)
+  firstInteraction DateTime  @default(now())
+  lastInteraction  DateTime  @default(now())
+  
+  // Security: Encrypted PII fields
+  phoneEncrypted   Boolean   @default(false) // Is phone encrypted?
+  emailEncrypted   Boolean   @default(false) // Is email encrypted?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  business      Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  conversations Conversation[]
+  memories      Memory[]
+  costLogs      CostLog[]
+
+  @@unique([businessId, phone]) // Same phone can exist across businesses
+  @@unique([businessId, email]) // Same email can exist across businesses
+  @@index([businessId])
+  @@index([phone])
+  @@index([email])
+  @@index([trustScore])
+  @@map("customers")
+}
+
+// ============================================
+// CONVERSATION & MESSAGING
+// ============================================
+
+enum Channel {
+  VOICE
+  CHAT
+  EMAIL
+  SMS
+  TELEGRAM
+  WHATSAPP
+  INSTAGRAM
+}
+
+enum ConversationStatus {
+  ACTIVE
+  CLOSED
+  TRANSFERRED
+}
+
+model Conversation {
+  id         String             @id @default(uuid())
+  businessId String
+  customerId String
+  channel    Channel
+  status     ConversationStatus @default(ACTIVE)
+  summary    String? // AI-generated summary
+  metadata   Json? // Channel-specific data
+  startedAt  DateTime           @default(now())
+  endedAt    DateTime?
+  updatedAt  DateTime           @updatedAt
+
+  // Relationships
+  business       Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer       Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  messages       Message[]
+  callRecordings CallRecording[]
+  costLogs       CostLog[]
+
+  @@index([businessId])
+  @@index([customerId])
+  @@index([channel])
+  @@index([status])
+  @@index([startedAt])
+  @@map("conversations")
+}
+
+enum MessageRole {
+  USER // Customer message
+  ASSISTANT // AI response
+  SYSTEM // System notification
+}
+
+enum MessageStatus {
+  PENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+model Message {
+  id             String        @id @default(uuid())
+  conversationId String
+  role           MessageRole
+  content        String        @db.Text
+  channel        Channel // Which channel this message came from
+  status         MessageStatus @default(SENT)
+  metadata       Json? // Attachments, reactions, delivery status
+  
+  // Phase 1: Cost tracking per message
+  aiCost         Decimal?      @db.Decimal(10, 6) // Cost in USD (max $9,999.999999)
+  embeddingCost  Decimal?      @db.Decimal(8, 6)  // Embedding cost
+  cachedResponse Boolean       @default(false) // Was this from cache?
+  
+  createdAt      DateTime      @default(now())
+
+  // Relationships
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+  @@index([cachedResponse]) // Analytics on cache effectiveness
+  @@map("messages")
+}
+
+// ============================================
+// UNIFIED MEMORY SYSTEM (Vector Store)
+// ============================================
+
+model Memory {
+  id         String                        @id @default(uuid())
+  customerId String
+  content    String                        @db.Text // Original text
+  embedding  Unsupported("vector(1536)")? // OpenAI embedding
+  source     String? // conversation_id, file_name, etc.
+  metadata   Json? // Tags, importance, channel
+  createdAt  DateTime                      @default(now())
+
+  // Relationships
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("memories")
+}
+
+// ============================================
+// VOICE-SPECIFIC DATA
+// ============================================
+
+model CallRecording {
+  id             String   @id @default(uuid())
+  conversationId String
+  exotelUrl      String? // URL to download recording from Exotel
+  localPath      String? // Path if stored locally
+  duration       Int? // Call duration in seconds
+  transcription  String?  @db.Text // Full AI transcription
+  metadata       Json? // Caller ID, status, etc.
+  createdAt      DateTime @default(now())
+
+  // Relationships
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@map("call_recordings")
+}
+
+// ============================================
+// PHASE 1: COST CONTROL & BUDGET MANAGEMENT
+// ============================================
+
+model BusinessCredit {
+  id                  String   @id @default(uuid())
+  businessId          String   @unique
+  
+  // Credit System
+  totalCredits        Decimal  @default(0) @db.Decimal(12, 2) // Prepaid balance (max $9,999,999,999.99)
+  usedCredits         Decimal  @default(0) @db.Decimal(12, 2)
+  availableCredits    Decimal  @default(0) @db.Decimal(12, 2) // total - used
+  
+  // Monthly Budget (Hard Cap)
+  monthlyBudget       Decimal  @default(50) @db.Decimal(10, 2) // USD per month (max $99,999,999.99)
+  currentMonthSpend   Decimal  @default(0) @db.Decimal(10, 2)
+  lastResetAt         DateTime @default(now())    // Monthly reset
+  
+  // Alerts
+  alertThresholds     Int[]    @default([75, 90]) // Percentages
+  lastAlertAt75       DateTime?
+  lastAlertAt90       DateTime?
+  
+  // Controls
+  isPaused            Boolean  @default(false)    // Auto-pause on budget exceeded
+  pausedAt            DateTime?
+  pauseReason         String?
+  
+  // Plan Info
+  planType            String      @default("STARTER") // STARTER, PRO, ENTERPRISE
+  planCredits         Decimal  @default(100) @db.Decimal(12, 2) // Credits included in plan
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  
+  @@map("business_credits")
+}
+
+model CostLog {
+  id               String   @id @default(uuid())
+  businessId       String
+  customerId       String?
+  conversationId   String?
+  
+  // Service Details
+  service          String   // OPENAI_GPT, OPENAI_EMBEDDING, AZURE_TTS, EXOTEL_SMS, EXOTEL_VOICE
+  cost             Decimal  @db.Decimal(10, 6) // In USD (6 decimal precision for micro-costs)
+  tokensUsed       Int?     // For AI calls
+  durationSeconds  Int?     // For voice calls
+  
+  // Context
+  channel          Channel? // Which channel this cost was for
+  model            String?  // GPT-4o-mini, etc.
+  
+  // Metadata
+  metadata         Json?    // Request details, cache hit/miss, etc.
+  
+  createdAt        DateTime @default(now())
+
+  business       Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer       Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  conversation   Conversation?  @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  
+  @@index([businessId, createdAt])
+  @@index([businessId, service])
+  @@index([service, createdAt])
+  @@index([createdAt]) // For monthly reports
+  @@map("cost_logs")
+}
+
+// ============================================
+// PHASE 1: RATE LIMITING & ABUSE PREVENTION
+// ============================================
+
+model RateLimitConfig {
+  id                    String @id @default(uuid())
+  businessId            String @unique
+  
+  // Per-Customer Limits (Daily)
+  maxMessagesPerDay     Int    @default(50)
+  maxCallsPerDay        Int    @default(3)
+  maxCallDurationMinutes Int   @default(5)
+  messageCooldownSeconds Int   @default(30)
+  
+  // Per-Customer Limits (Hourly - for burst protection)
+  maxMessagesPerHour    Int    @default(20)
+  maxCallsPerHour       Int    @default(1)
+  
+  // Business-Level Limits (Monthly)
+  monthlyMessageQuota   Int    @default(1000)
+  monthlyCallQuota      Int    @default(100)
+  monthlySMQuota        Int    @default(500)
+  
+  // Abuse Detection Settings
+  enableAbuseDetection  Boolean @default(true)
+  blockVpnTraffic       Boolean @default(false)
+  requireVerification   Boolean @default(true) // New customers need verification
+  
+  // Auto-escalation
+  autoBlockAfterAbuseCount Int @default(3) // Block after 3 abuse detections
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  
+  @@map("rate_limit_configs")
+}
+
+model AbuseLog {
+  id           String   @id @default(uuid())
+  businessId   String?
+  customerId   String?
+  
+  // Identifiers
+  phone        String?
+  email        String?
+  ipAddress    String?
+  fingerprint  String?  // Device/browser fingerprint
+  
+  // Action Taken
+  action       String   // BLOCKED, THROTTLED, FLAGGED, BANNED
+  reason       String   // RAPID_FIRE, GIBBERISH, VPN, BUDGET_EXCEEDED, RATE_LIMIT, etc.
+  severity     String   @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  
+  // Evidence
+  evidence     Json?    // Request logs, patterns, sample messages
+  requestCount Int?     // Number of requests in the window
+  
+  // Resolution
+  resolved     Boolean  @default(false)
+  resolvedAt   DateTime?
+  resolvedBy   String?  // Admin who resolved
+  notes        String?  // Resolution notes
+  
+  createdAt    DateTime @default(now())
+  
+  @@index([ipAddress, createdAt])
+  @@index([phone, createdAt])
+  @@index([businessId, createdAt])
+  @@index([action, createdAt])
+  @@index([resolved, createdAt])
+  @@map("abuse_logs")
+}
+
+// ============================================
+// PHASE 1: SEMANTIC CACHE SYSTEM
+// ============================================
+
+model ResponseCache {
+  id              String   @id @default(uuid())
+  businessId      String
+  
+  // Embedding Identification
+  embeddingHash   String   // SHA256 of the embedding vector
+  queryVector     Unsupported("vector(1536)")? // For similarity search
+  
+  // Cached Content
+  queryText       String   @db.Text  // Original query (debugging)
+  queryNormalized String   @db.Text  // Normalized for matching
+  responseText    String   @db.Text
+  contextHash     String?  // Hash of context used (for invalidation)
+  
+  // Cache Metadata
+  hitCount        Int      @default(1)
+  similarityScore Decimal  @default(0.92) // Minimum similarity to match
+  lastAccessedAt  DateTime @default(now())
+  expiresAt       DateTime // TTL based on query type
+  
+  // Source Tracking
+  sourceChannel   String?  // Which channel this came from
+  customerId      String?  // Null = general query, set = customer-specific
+  isFAQ           Boolean  @default(false)
+  
+  // Quality Metrics
+  avgRating       Decimal? @db.Decimal(3, 2) // Customer feedback on cached response (0.00-9.99)
+  feedbackCount   Int      @default(0)
+  
+  createdAt       DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  
+  // Better unique constraint to prevent duplicates across customers
+  @@unique([businessId, embeddingHash, customerId])
+  @@index([businessId, expiresAt])
+  @@index([businessId, isFAQ])
+  @@index([businessId, customerId])
+  @@index([lastAccessedAt]) // For cache eviction
+  // Note: Vector indexes added via raw SQL migration (see migrations/)
+  @@map("response_caches")
+}
+
+model BusinessFAQ {
+  id              String   @id @default(uuid())
+  businessId      String
+  
+  // Content
+  question        String   @db.Text
+  questionVariants String[] // Alternative phrasings
+  answer          String   @db.Text
+  category        String?  // hours, pricing, location, policies, etc.
+  
+  // Vector for Semantic Matching
+  embedding       Unsupported("vector(1536)")?
+  
+  // Stats
+  hitCount        Int      @default(0)
+  lastHitAt       DateTime?
+  
+  // Status
+  isActive        Boolean  @default(true)
+  priority        Int      @default(0) // Higher = match first
+  
+  // Auto-Extraction
+  autoExtracted   Boolean  @default(false) // AI found this from conversations
+  extractedFrom   String?  // Conversation ID where this was found
+  confidence      Decimal? // AI confidence score (0-1)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  
+  @@index([businessId, category])
+  @@index([businessId, isActive])
+  @@index([businessId, priority])
+  @@map("business_faqs")
+}
+
+// ============================================
+// PHASE 1: PROACTIVE CAMPAIGNS
+// ============================================
+
+enum CampaignType {
+  REMINDER
+  PROMOTION
+  FOLLOW_UP
+  ABANDONED_CART
+  APPOINTMENT_REMINDER
+  BIRTHDAY
+  CUSTOM
+}
+
+enum CampaignTrigger {
+  SCHEDULED
+  EVENT_BASED
+  BEHAVIORAL
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  RUNNING
+  PAUSED
+  COMPLETED
+  FAILED
+}
+
+model Campaign {
+  id           String   @id @default(uuid())
+  businessId   String
+  
+  // Basic Info
+  name         String
+  description  String?
+  type         CampaignType
+  
+  // Trigger Configuration
+  triggerType  CampaignTrigger
+  triggerConfig Json?   // Cron expression, event rules, conditions
+  scheduledAt  DateTime? // When to run (for SCHEDULED type)
+  
+  // Targeting
+  targetFilter Json?    // Customer segment rules (tags, behavior, etc.)
+  channel      Channel  // Which channel to use
+  
+  // Content
+  messageTemplate String @db.Text
+  aiPersonalized Boolean @default(false) // Use AI to personalize each message
+  
+  // Execution
+  startedAt    DateTime?
+  completedAt  DateTime?
+  status       CampaignStatus @default(DRAFT)
+  
+  // Stats
+  totalTargeted Int      @default(0)
+  totalSent     Int      @default(0)
+  totalFailed   Int      @default(0)
+  totalReplied  Int      @default(0)
+  totalConverted Int     @default(0) // Clicked link, booked, etc.
+  
+  // Cost Tracking
+  estimatedCost  Decimal?
+  actualCost     Decimal  @default(0)
+  
+  // Error Handling
+  errorMessage   String?
+  retryCount     Int      @default(0)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  
+  @@index([businessId, status])
+  @@index([businessId, type])
+  @@index([scheduledAt])
+  @@index([status, scheduledAt]) // For job scheduler
+  @@map("campaigns")
+}
+
+// ============================================
+// RATE LIMIT TRACKING (Redis-Backed State)
+// ============================================
+
+// Note: Actual rate limit tracking uses Redis
+// This table is for historical/analytics purposes
+
+model RateLimitHit {
+  id          String   @id @default(uuid())
+  businessId  String?
+  customerId  String?
+  
+  // What was limited
+  limitType   String   // MESSAGES_DAILY, CALLS_HOURLY, etc.
+  channel     Channel?
+  
+  // Context
+  actionTaken String   // BLOCKED, THROTTLED, ALLOWED
+  hitCount    Int      // How many requests in window
+  limitValue  Int      // The limit that was hit
+  
+  // Request Details
+  ipAddress   String?
+  userAgent   String?
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([businessId, createdAt])
+  @@index([customerId, createdAt])
+  @@index([limitType, createdAt])
+  @@map("rate_limit_hits")
+}
+
+// ============================================
+// PHASE 6: ENTERPRISE FEATURES & ADVANCED AI
+// ============================================
+
+// ============================================
+// ADVANCED AI: SENTIMENT ANALYSIS
+// ============================================
+
+enum Sentiment {
+  POSITIVE
+  NEGATIVE
+  NEUTRAL
+  MIXED
+}
+
+model SentimentLog {
+  id               String   @id @default(uuid())
+  businessId       String
+  customerId       String
+  conversationId   String?
+  channel          Channel
+  
+  // Message Info
+  messagePreview   String   @db.Text
+  
+  // Sentiment Analysis
+  sentiment        Sentiment
+  confidence       Decimal  @db.Decimal(3, 2) // 0.00 - 1.00
+  score            Decimal  @db.Decimal(3, 2) // -1.00 to 1.00
+  emotions         Json?    // { anger: 0.8, joy: 0.2, ... }
+  
+  // Alert
+  alertTriggered   Boolean  @default(false)
+  
+  createdAt        DateTime @default(now())
+  
+  @@index([businessId, createdAt])
+  @@index([customerId, createdAt])
+  @@index([sentiment, createdAt])
+  @@index([alertTriggered, createdAt])
+  @@map("sentiment_logs")
+}
+
+// ============================================
+// ADVANCED AI: INTENT CLASSIFICATION
+// ============================================
+
+enum Intent {
+  SALES
+  SUPPORT
+  COMPLAINT
+  INQUIRY
+  FEEDBACK
+  APPOINTMENT
+  PRICING
+  GENERAL
+}
+
+enum UrgencyLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model IntentLog {
+  id               String      @id @default(uuid())
+  businessId       String
+  customerId       String
+  conversationId   String?
+  channel          Channel
+  
+  // Message Info
+  messagePreview   String      @db.Text
+  
+  // Intent Classification
+  intent           Intent
+  confidence       Decimal     @db.Decimal(3, 2)
+  secondaryIntents Json?       // [{ intent, confidence }, ...]
+  urgency          UrgencyLevel @default(LOW)
+  
+  // Auto-escalation
+  autoEscalated    Boolean     @default(false)
+  
+  createdAt        DateTime    @default(now())
+  
+  @@index([businessId, createdAt])
+  @@index([customerId, createdAt])
+  @@index([intent, createdAt])
+  @@index([urgency, createdAt])
+  @@index([autoEscalated, createdAt])
+  @@map("intent_logs")
+}
+
+// ============================================
+// CRM INTEGRATIONS
+// ============================================
+
+enum CRMProvider {
+  SALESFORCE
+  HUBSPOT
+  ZOHO
+  CUSTOM
+}
+
+model CRMIntegration {
+  id            String      @id @default(uuid())
+  businessId    String      @unique
+  
+  // Provider Config
+  provider      CRMProvider
+  enabled       Boolean     @default(true)
+  
+  // API Credentials
+  apiKey        String?
+  apiSecret     String?
+  accessToken   String?
+  refreshToken  String?
+  instanceUrl   String?     // Salesforce: instance URL, Zoho: domain
+  
+  // Settings
+  settings      Json?       // Provider-specific settings
+  
+  // Sync Settings
+  autoSync      Boolean     @default(true)
+  syncContacts  Boolean     @default(true)
+  syncLeads     Boolean     @default(true)
+  syncOpportunities Boolean @default(true)
+  syncCases     Boolean     @default(false)
+  
+  // Last Sync
+  lastSyncAt    DateTime?
+  lastSyncError String?
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  @@map("crm_integrations")
+}
+
+// ============================================
+// WHITE-LABEL: BRANDING
+// ============================================
+
+model CustomBranding {
+  id              String   @id @default(uuid())
+  businessId      String   @unique
+  
+  // Colors
+  colors          Json     // { primary, secondary, accent, background, text }
+  
+  // Logo
+  logo            Json?    // { url, darkModeUrl, favicon }
+  
+  // Typography
+  typography      Json     // { headingFont, bodyFont }
+  
+  // Custom CSS
+  customCSS       String?  @db.Text
+  
+  // Email Templates
+  emailTemplates  Json     // { headerHTML, footerHTML, signature }
+  
+  // Chat Widget
+  chatWidget      Json     // { position, greeting, placeholder, showBranding }
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("custom_brandings")
+}
+
+// ============================================
+// WHITE-LABEL: CUSTOM DOMAINS
+// ============================================
+
+enum DomainStatus {
+  PENDING
+  VERIFIED
+  FAILED
+}
+
+enum SSLStatus {
+  PENDING
+  ACTIVE
+  FAILED
+}
+
+model CustomDomain {
+  id                   String       @id @default(uuid())
+  businessId           String
+  
+  // Domain
+  domain               String       @unique
+  status               DomainStatus @default(PENDING)
+  
+  // Verification
+  verificationMethod   String       @default("DNS") // DNS or FILE
+  verificationToken    String
+  verifiedAt           DateTime?
+  
+  // SSL Certificate
+  sslStatus            SSLStatus    @default(PENDING)
+  sslCertificate       String?      @db.Text
+  sslPrivateKey        String?      @db.Text
+  sslExpiresAt         DateTime?
+  
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  
+  @@index([businessId])
+  @@index([status])
+  @@map("custom_domains")
+}
+
+// ============================================
+// ADVANCED CAMPAIGNS: A/B TESTING
+// ============================================
+
+enum ABTestStatus {
+  DRAFT
+  RUNNING
+  PAUSED
+  COMPLETED
+}
+
+enum WinnerCriteria {
+  OPEN_RATE
+  CLICK_RATE
+  REPLY_RATE
+  CONVERSION_RATE
+}
+
+model ABTest {
+  id               String       @id @default(uuid())
+  businessId       String
+  campaignId       String
+  
+  // Test Info
+  name             String
+  description      String?
+  status           ABTestStatus @default(DRAFT)
+  
+  // Variants
+  variants         Json         // [{ id, name, content, subject, weight, stats }]
+  
+  // Configuration
+  winnerCriteria   WinnerCriteria @default(CONVERSION_RATE)
+  confidenceLevel  Decimal        @db.Decimal(3, 2) @default(0.95)
+  sampleSize       Int            @default(100)
+  
+  // Results
+  winner           String?        // Variant ID
+  
+  // Timeline
+  startedAt        DateTime?
+  endedAt          DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  
+  @@index([businessId, status])
+  @@index([campaignId])
+  @@map("ab_tests")
+}
+
+// ============================================
+// COHORT ANALYSIS
+// ============================================
+
+model Cohort {
+  id             String   @id @default(uuid())
+  businessId     String
+  
+  // Cohort Definition
+  name           String
+  period         String   // "2024-01", "2024-W01", etc.
+  cohortType     String   @default("MONTHLY") // MONTHLY, WEEKLY, DAILY
+  
+  // Size
+  size           Int
+  
+  // Retention Data
+  retention      Json     // [100, 85, 72, 65, ...] percentage at month 0, 1, 2, 3...
+  
+  // Metrics
+  ltv            Decimal? // Lifetime value
+  avgOrderValue  Decimal?
+  conversionRate Decimal? @db.Decimal(5, 2)
+  
+  // Filters
+  acquisitionChannel String? // How cohort was acquired
+  tags           String[] // Cohort tags
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  @@index([businessId, period])
+  @@index([cohortType])
+  @@map("cohorts")
+}
+
+// ============================================
+// AUDIT LOG
+// ============================================
+
+enum AuditAction {
+  // Customer Actions
+  CUSTOMER_CREATED
+  CUSTOMER_UPDATED
+  CUSTOMER_DELETED
+  CUSTOMER_VERIFIED
+  CUSTOMER_BLOCKED
+  
+  // Business Actions
+  BUSINESS_CREATED
+  BUSINESS_UPDATED
+  BUSINESS_CONFIG_CHANGED
+  
+  // Conversation Actions
+  CONVERSATION_CREATED
+  CONVERSATION_CLOSED
+  CONVERSATION_TRANSFERRED
+  MESSAGE_SENT
+  MESSAGE_DELETED
+  
+  // Campaign Actions
+  CAMPAIGN_CREATED
+  CAMPAIGN_UPDATED
+  CAMPAIGN_EXECUTED
+  CAMPAIGN_DELETED
+  
+  // Security Actions
+  LOGIN_SUCCESS
+  LOGIN_FAILED
+  PASSWORD_CHANGED
+  API_KEY_ROTATED
+  WEBHOOK_SECRET_CHANGED
+  
+  // Cost/Budget Actions
+  BUDGET_LIMIT_UPDATED
+  CREDITS_PURCHASED
+  BUSINESS_PAUSED
+  BUSINESS_UNPAUSED
+  
+  // Data Export
+  DATA_EXPORTED
+  REPORT_GENERATED
+}
+
+enum AuditSeverity {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
+
+model AuditLog {
+  id            String        @id @default(uuid())
+  timestamp     DateTime      @default(now())
+  
+  // Actors
+  businessId    String?
+  customerId    String?
+  userId        String?       // Clerk user ID
+  
+  // Action Details
+  action        AuditAction
+  severity      AuditSeverity @default(INFO)
+  resource      String        // Entity type: customer, business, conversation, etc.
+  resourceId    String
+  description   String        @db.Text
+  
+  // Data Changes
+  oldValue      Json?
+  newValue      Json?
+  
+  // Metadata
+  metadata      Json?         // { ipAddress, userAgent, requestId, changes: [...] }
+  
+  @@index([businessId, timestamp])
+  @@index([customerId, timestamp])
+  @@index([userId, timestamp])
+  @@index([action, timestamp])
+  @@index([severity, timestamp])
+  @@index([resource, resourceId])
+  @@map("audit_logs")
+}

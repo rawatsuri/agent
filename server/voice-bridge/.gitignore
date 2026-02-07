@@ -1,0 +1,77 @@
+# Git ignore for Voice Bridge Python service
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+.venv/
+
+# Environment variables (sensitive)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Audio files
+*.wav
+*.mp3
+*.raw
+*.mulaw
+
+# Models (large files)
+models/
+*.pt
+*.pth
+*.bin
+*.onnx
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Docker
+.dockerignore
+
+# Whisper cache
+.cache/
+whisper_cache/
