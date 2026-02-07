@@ -13,16 +13,6 @@ npm install
 echo "🔄 Generating Prisma Client..."
 npx prisma generate
 
-# Run database migrations (only if DATABASE_URL is set)
-if [ ! -z "$DATABASE_URL" ]; then
-  echo "🗄️ Running database migrations..."
-  npx prisma migrate deploy || echo "⚠️ Migration skipped or failed"
-fi
-
-# Run linting
-echo "🔍 Running linter..."
-npm run lint || echo "⚠️ Linting warnings found"
-
 # Build the application (skip linting and tests)
 echo "🔨 Building application..."
 npx tsc && npx tsc-alias

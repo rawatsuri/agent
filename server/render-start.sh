@@ -16,6 +16,12 @@ if [ -z "$DATABASE_URL" ]; then
   exit 1
 fi
 
+# Run migrations if DATABASE_URL is set
+if [ ! -z "$DATABASE_URL" ]; then
+  echo "🗄️ Running database migrations..."
+  npx prisma migrate deploy || echo "⚠️ Migration failed, continuing anyway"
+fi
+
 # Start the server
 echo "🌐 Starting server on port ${PORT:-3000}..."
 exec npm start
