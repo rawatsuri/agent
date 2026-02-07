@@ -1,13 +1,13 @@
-# Render Blueprint Configuration
-# This file configures all services for the Omnichannel AI Platform
+# Render Blueprint - Backend Only
+# Deploys only the Node.js API and Python Voice Bridge
 
 services:
   # 1. Node.js Backend API Service
   - type: web
     name: omnichannel-ai-api
     runtime: node
-    buildCommand: chmod +x server/render-build.sh && ./server/render-build.sh
-    startCommand: chmod +x server/render-start.sh && ./server/render-start.sh
+    buildCommand: chmod +x render-build.sh && ./render-build.sh
+    startCommand: chmod +x render-start.sh && ./render-start.sh
     envVars:
       - key: NODE_ENV
         value: production
@@ -46,15 +46,17 @@ services:
         sync: false
       - key: TELEGRAM_BOT_TOKEN
         sync: false
-      - key: AZURE_TTS_KEY
+      - key: AZURE_SPEECH_KEY
         sync: false
-      - key: AZURE_TTS_REGION
+      - key: AZURE_SPEECH_REGION
         sync: false
       - key: VOICE_BRIDGE_URL
         fromService:
           type: web
           name: omnichannel-ai-voice
           property: host
+      - key: INTERNAL_API_KEY
+        sync: false
     healthCheckPath: /health
     autoDeploy: true
     plan: standard
@@ -63,8 +65,8 @@ services:
   - type: web
     name: omnichannel-ai-voice
     runtime: python
-    buildCommand: chmod +x server/voice-bridge/render-build.sh && ./server/voice-bridge/render-build.sh
-    startCommand: chmod +x server/voice-bridge/render-start.sh && ./server/voice-bridge/render-start.sh
+    buildCommand: chmod +x voice-bridge/render-build.sh && ./voice-bridge/render-build.sh
+    startCommand: chmod +x voice-bridge/render-start.sh && ./voice-bridge/render-start.sh
     envVars:
       - key: PYTHONPATH
         value: .
@@ -75,6 +77,8 @@ services:
           type: web
           name: omnichannel-ai-api
           property: host
+      - key: INTERNAL_API_KEY
+        sync: false
       - key: AZURE_TTS_KEY
         sync: false
       - key: AZURE_TTS_REGION
@@ -95,33 +99,8 @@ services:
     autoDeploy: true
     plan: standard
 
-  # 3. React Frontend (Static Site)
-  - type: static
-    name: omnichannel-ai-web
-    buildCommand: cd web && npm install && npm run build
-    publishPath: ./web/dist
-    envVars:
-      - key: VITE_API_URL
-        fromService:
-          type: web
-          name: omnichannel-ai-api
-          property: host
-      - key: VITE_CLERK_PUBLISHABLE_KEY
-        sync: false
-    routes:
-      - type: rewrite
-        source: /api/*
-        destination: https://omnichannel-ai-api.onrender.com/api/$1
-      - type: rewrite
-        source: /webhooks/*
-        destination: https://omnichannel-ai-api.onrender.com/webhooks/$1
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    autoDeploy: true
-
 databases:
-  # PostgreSQL Database with pgvector support
+  # PostgreSQL Database
   - name: omnichannel-ai-db
     databaseName: omnichannel_ai
     user: omnichannel_ai_user
@@ -134,23 +113,3 @@ databases:
     name: omnichannel-ai-redis
     plan: starter
     ipAllowList: []
-
-# Background Worker (Optional - if you want to run workers separately)
-# - type: worker
-#   name: omnichannel-ai-worker
-#   runtime: node
-#   buildCommand: cd server && npm install && npm run build
-#   startCommand: cd server && npm run worker
-#   envVars:
-#     - key: NODE_ENV
-#       value: production
-#     - key: DATABASE_URL
-#       fromDatabase:
-#         name: omnichannel-ai-db
-#         property: connectionString
-#     - key: REDIS_URL
-#       fromService:
-#         type: redis
-#         name: omnichannel-ai-redis
-#         property: connectionString
-#   autoDeploy: true

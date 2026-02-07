@@ -5,8 +5,6 @@ set -e
 
 echo "🚀 Starting Node.js Server..."
 
-cd server
-
 # Check if Redis is configured
 if [ -z "$REDIS_URL" ]; then
   echo "⚠️ Warning: REDIS_URL not set. Queue features will be disabled."

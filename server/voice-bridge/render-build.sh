@@ -5,7 +5,7 @@ set -e
 
 echo "🎙️ Starting Python Voice Bridge Build..."
 
-cd server/voice-bridge
+cd voice-bridge
 
 # Install system dependencies
 echo "📦 Installing system dependencies..."

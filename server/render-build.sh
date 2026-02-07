@@ -5,9 +5,6 @@ set -e
 
 echo "🚀 Starting Node.js Server Build..."
 
-# Navigate to server directory
-cd server
-
 # Install dependencies
 echo "📦 Installing dependencies..."
 npm ci

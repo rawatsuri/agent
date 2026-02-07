@@ -5,7 +5,7 @@ set -e
 
 echo "🎙️ Starting Python Voice Bridge..."
 
-cd server/voice-bridge
+cd voice-bridge
 
 # Check required environment variables
 if [ -z "$AZURE_TTS_KEY" ]; then
