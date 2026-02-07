@@ -40,10 +40,10 @@ export class ConversationController {
 
       // Filter by date range
       if (req.query.fromDate) {
-        where.createdAt = { ...where.createdAt, gte: new Date(req.query.fromDate as string) };
+        where.startedAt = { ...where.startedAt, gte: new Date(req.query.fromDate as string) };
       }
       if (req.query.toDate) {
-        where.createdAt = { ...where.createdAt, lte: new Date(req.query.toDate as string) };
+        where.startedAt = { ...where.startedAt, lte: new Date(req.query.toDate as string) };
       }
 
       // Get total count
@@ -81,7 +81,7 @@ export class ConversationController {
           status: conv.status,
           summary: conv.summary,
           customer: conv.customer,
-          createdAt: conv.createdAt,
+          startedAt: conv.startedAt,
           updatedAt: conv.updatedAt,
           messageCount: conv._count.messages,
         })),
@@ -140,7 +140,7 @@ export class ConversationController {
         status: conversation.status,
         summary: conversation.summary,
         customer: conversation.customer,
-        createdAt: conversation.createdAt,
+        startedAt: conversation.startedAt,
         updatedAt: conversation.updatedAt,
         messageCount: conversation._count.messages,
       });
@@ -178,7 +178,7 @@ export class ConversationController {
           where: { conversationId },
           skip,
           take: limit,
-          orderBy: { createdAt: 'asc' },
+          orderBy: { createdAt: 'desc' },
           select: {
             id: true,
             role: true,

@@ -87,8 +87,8 @@ export class FunnelAnalyzerService {
             },
             include: {
                 conversations: {
-                    where: { createdAt: { gte: since } },
-                    orderBy: { createdAt: 'asc' },
+                    where: { startedAt: { gte: since } },
+                    orderBy: { startedAt: 'asc' },
                 },
             },
         });
@@ -316,7 +316,7 @@ export class CohortAnalyzerService {
             orderBy: { firstInteraction: 'asc' },
             include: {
                 conversations: {
-                    orderBy: { createdAt: 'asc' },
+                    orderBy: { startedAt: 'asc' },
                 },
             },
         });
@@ -376,7 +376,7 @@ export class CohortAnalyzerService {
             const activeCustomers = customers.filter((c) =>
                 c.conversations.some(
                     (conv: any) =>
-                        conv.createdAt >= monthStart && conv.createdAt < monthEnd
+                        conv.startedAt >= monthStart && conv.startedAt < monthEnd
                 )
             );
 
@@ -542,7 +542,7 @@ export class PredictionService {
             where: { id: params.customerId },
             include: {
                 conversations: {
-                    orderBy: { createdAt: 'desc' },
+                    orderBy: { startedAt: 'desc' },
                     take: 10,
                 },
                 memories: {
@@ -702,7 +702,7 @@ export class PredictionService {
             where: { id: params.customerId },
             include: {
                 conversations: {
-                    orderBy: { createdAt: 'desc' },
+                    orderBy: { startedAt: 'desc' },
                     take: 5,
                 },
             },

@@ -20,5 +20,5 @@
     "resolveFullPaths": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist", "__tests__", "coverage"]
+  "exclude": ["node_modules", "dist", "__tests__", "coverage", "src/**/*.test.ts", "src/**/*.spec.ts"]
 }

@@ -12,10 +12,12 @@ import { db } from '@/config/database';
 import { CostTrackerService } from '@/features/cost-control/cost-tracker.service';
 import { logger } from '@/utils/logger';
 
+export type CRMProvider = 'SALESFORCE' | 'HUBSPOT' | 'ZOHO' | 'CUSTOM';
+
 export interface CRMConfig {
     id: string;
     businessId: string;
-    provider: 'SALESFORCE' | 'HUBSPOT' | 'ZOHO' | 'CUSTOM';
+    provider: CRMProvider;
     enabled: boolean;
     apiKey?: string;
     apiSecret?: string;
@@ -916,7 +918,7 @@ export class WebhookOutService {
         for (let attempt = 0; attempt < maxRetries; attempt++) {
             try {
                 // Generate signature if secret provided
-                let headers = { ...params.headers, 'Content-Type': 'application/json' };
+                let headers: Record<string, string> = { ...params.headers, 'Content-Type': 'application/json' };
                 if (params.secret) {
                     const signature = await this.generateSignature(params.payload, params.secret);
                     headers['X-Webhook-Signature'] = signature;

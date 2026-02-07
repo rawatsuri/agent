@@ -26,7 +26,7 @@ router.get('/branding', clerkAuth, async (req: Request, res: Response) => {
 
         resSuccess(res, { data: branding });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -37,7 +37,7 @@ router.get('/branding', clerkAuth, async (req: Request, res: Response) => {
 router.put('/branding/colors', clerkAuth, async (req: Request, res: Response) => {
     try {
         const businessId = (req as any).businessId;
-        
+
         const schema = z.object({
             primary: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
             secondary: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
@@ -52,7 +52,7 @@ router.put('/branding/colors', clerkAuth, async (req: Request, res: Response) =>
 
         resSuccess(res, { data: branding, message: 'Colors updated successfully' });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -78,7 +78,7 @@ router.post('/branding/logo', clerkAuth, async (req: Request, res: Response) => 
 
         resSuccess(res, { data: result, message: 'Logo updated successfully' });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -89,7 +89,7 @@ router.post('/branding/logo', clerkAuth, async (req: Request, res: Response) => 
 router.put('/branding/css', clerkAuth, async (req: Request, res: Response) => {
     try {
         const businessId = (req as any).businessId;
-        
+
         const schema = z.object({
             css: z.string().max(50000),
         });
@@ -100,7 +100,7 @@ router.put('/branding/css', clerkAuth, async (req: Request, res: Response) => {
 
         resSuccess(res, { data: branding, message: 'Custom CSS updated' });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -111,7 +111,7 @@ router.put('/branding/css', clerkAuth, async (req: Request, res: Response) => {
 router.put('/branding/email-templates', clerkAuth, async (req: Request, res: Response) => {
     try {
         const businessId = (req as any).businessId;
-        
+
         const schema = z.object({
             headerHTML: z.string().optional(),
             footerHTML: z.string().optional(),
@@ -124,7 +124,7 @@ router.put('/branding/email-templates', clerkAuth, async (req: Request, res: Res
 
         resSuccess(res, { data: branding, message: 'Email templates updated' });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -135,7 +135,7 @@ router.put('/branding/email-templates', clerkAuth, async (req: Request, res: Res
 router.put('/branding/chat-widget', clerkAuth, async (req: Request, res: Response) => {
     try {
         const businessId = (req as any).businessId;
-        
+
         const schema = z.object({
             position: z.enum(['bottom-left', 'bottom-right']).optional(),
             greeting: z.string().max(200).optional(),
@@ -149,7 +149,7 @@ router.put('/branding/chat-widget', clerkAuth, async (req: Request, res: Respons
 
         resSuccess(res, { data: branding, message: 'Chat widget settings updated' });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -165,7 +165,7 @@ router.get('/branding/embed-code', clerkAuth, async (req: Request, res: Response
 
         resSuccess(res, { data: { code } });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -182,7 +182,7 @@ router.get('/branding/css-variables', clerkAuth, async (req: Request, res: Respo
 
         resSuccess(res, { data: { css } });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -202,7 +202,7 @@ router.get('/domains', clerkAuth, async (req: Request, res: Response) => {
 
         resSuccess(res, { data: domains });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -213,23 +213,20 @@ router.get('/domains', clerkAuth, async (req: Request, res: Response) => {
 router.post('/domains', clerkAuth, async (req: Request, res: Response) => {
     try {
         const businessId = (req as any).businessId;
-        
+
         const schema = z.object({
-            domain: z.string().min(3),
-        });
+            const body = schema.parse(req.body);
 
-        const body = schema.parse(req.body);
+            const domain = await DomainService.addDomain(businessId, (req.params.domain as string).toLowerCase());
 
-        const domain = await DomainService.addDomain(businessId, body.domain);
-
-        resSuccess(res, {
-            data: domain,
-            message: 'Domain added. Please follow verification instructions.',
-        });
-    } catch (error) {
-        resError(res, error as Error, 500);
-    }
-});
+            resSuccess(res, {
+                data: domain,
+                message: 'Domain added. Please follow verification instructions.',
+            });
+        } catch (error) {
+            resError(res, (error as Error).message, 500);
+        }
+    });
 
 /**
  * Get domain verification instructions
@@ -243,7 +240,7 @@ router.get('/domains/:id/verify', clerkAuth, async (req: Request, res: Response)
 
         resSuccess(res, { data: instructions });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -263,7 +260,7 @@ router.post('/domains/:id/verify', clerkAuth, async (req: Request, res: Response
             resError(res, new Error(result.message), 400);
         }
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -279,7 +276,7 @@ router.delete('/domains/:id', clerkAuth, async (req: Request, res: Response) => 
 
         resSuccess(res, { message: 'Domain removed successfully' });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 

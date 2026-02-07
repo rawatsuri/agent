@@ -12,6 +12,7 @@ export {
     CRMFactory,
     WebhookOutService,
     type CRMConfig,
+    type CRMProvider,
     type ICRMConnector,
     type SyncResult,
 } from './crm.services';

@@ -47,7 +47,7 @@ router.post(
 
             resSuccess(res, { data: result });
         } catch (error) {
-            resError(res, error as Error, 500);
+            resError(res, (error as Error).message, 500);
         }
     }
 );
@@ -73,7 +73,7 @@ router.get(
 
             resSuccess(res, { data: trend });
         } catch (error) {
-            resError(res, error as Error, 500);
+            resError(res, (error as Error).message, 500);
         }
     }
 );
@@ -107,7 +107,7 @@ router.post(
 
             resSuccess(res, { data: result });
         } catch (error) {
-            resError(res, error as Error, 500);
+            resError(res, (error as Error).message, 500);
         }
     }
 );
@@ -131,7 +131,7 @@ router.get(
 
             resSuccess(res, { data: analytics });
         } catch (error) {
-            resError(res, error as Error, 500);
+            resError(res, (error as Error).message, 500);
         }
     }
 );
@@ -161,7 +161,7 @@ router.post(
 
             resSuccess(res, { data: result });
         } catch (error) {
-            resError(res, error as Error, 500);
+            resError(res, (error as Error).message, 500);
         }
     }
 );
@@ -193,7 +193,7 @@ router.post(
 
             resSuccess(res, { data: { translation: result } });
         } catch (error) {
-            resError(res, error as Error, 500);
+            resError(res, (error as Error).message, 500);
         }
     }
 );
@@ -251,7 +251,7 @@ router.get(
                 },
             });
         } catch (error) {
-            resError(res, error as Error, 500);
+            resError(res, (error as Error).message, 500);
         }
     }
 );

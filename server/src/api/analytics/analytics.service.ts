@@ -149,7 +149,7 @@ export class AnalyticsService {
         where: { businessId, createdAt: { gte: today } },
       }),
       db.conversation.count({
-        where: { businessId, createdAt: { gte: today } },
+        where: { businessId, startedAt: { gte: today } },
       }),
       db.message.count({
         where: {
@@ -192,7 +192,7 @@ export class AnalyticsService {
       db.conversation.count({
         where: {
           businessId,
-          createdAt: { gte: yesterday, lt: today },
+          startedAt: { gte: yesterday, lt: today },
         },
       }),
       db.message.count({
@@ -311,28 +311,28 @@ export class AnalyticsService {
 
     const [total, byStatus] = await Promise.all([
       db.conversation.count({
-        where: { businessId, createdAt: { gte: startDate } },
+        where: { businessId, startedAt: { gte: startDate } },
       }),
       db.conversation.groupBy({
         by: ['status'],
-        where: { businessId, createdAt: { gte: startDate } },
+        where: { businessId, startedAt: { gte: startDate } },
         _count: { id: true },
       }),
     ]);
 
     const byChannel = await db.conversation.groupBy({
       by: ['channel'],
-      where: { businessId, createdAt: { gte: startDate } },
+      where: { businessId, startedAt: { gte: startDate } },
       _count: { id: true },
     });
 
     // Calculate average conversation duration (for closed conversations)
     const avgDuration = await db.$queryRaw<{ avg_duration: number }[]>`
-      SELECT AVG(EXTRACT(EPOCH FROM (updatedAt - createdAt))) / 60 as avg_duration
+      SELECT AVG(EXTRACT(EPOCH FROM (updatedAt - startedAt))) / 60 as avg_duration
       FROM "Conversation"
       WHERE "businessId" = ${businessId}
       AND status = 'CLOSED'
-      AND "createdAt" >= ${startDate}
+      AND "startedAt" >= ${startDate}
     `;
 
     // Calculate average messages per conversation
@@ -343,7 +343,7 @@ export class AnalyticsService {
         FROM "Conversation" c
         JOIN "Message" m ON m."conversationId" = c.id
         WHERE c."businessId" = ${businessId}
-        AND c."createdAt" >= ${startDate}
+        AND c."startedAt" >= ${startDate}
         GROUP BY c.id
       ) as msg_counts
     `;
@@ -351,13 +351,13 @@ export class AnalyticsService {
     // Get daily trends
     const trends = await db.$queryRaw<{ date: string; new: number; closed: number }[]>`
       SELECT 
-        DATE("createdAt") as date,
+        DATE("startedAt") as date,
         COUNT(*) FILTER (WHERE status != 'CLOSED' OR status IS NULL) as new,
         COUNT(*) FILTER (WHERE status = 'CLOSED') as closed
       FROM "Conversation"
       WHERE "businessId" = ${businessId}
-      AND "createdAt" >= ${startDate}
-      GROUP BY DATE("createdAt")
+      AND "startedAt" >= ${startDate}
+      GROUP BY DATE("startedAt")
       ORDER BY date DESC
     `;
 

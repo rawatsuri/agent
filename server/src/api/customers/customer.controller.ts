@@ -60,10 +60,10 @@ export class CustomerController {
       }
 
       // Get total count for pagination
-      const total = await db.customers.count({ where });
+      const total = await db.customer.count({ where });
 
       // Get customers
-      const customers = await db.customers.findMany({
+      const customers = await db.customer.findMany({
         where,
         skip,
         take: limit,
@@ -113,7 +113,7 @@ export class CustomerController {
       const businessId = req.business!.id;
       const customerId = req.params.id;
 
-      const customer = await db.customers.findFirst({
+      const customer = await db.customer.findFirst({
         where: { id: customerId, businessId },
         include: {
           _count: {
@@ -162,7 +162,7 @@ export class CustomerController {
       const customerId = req.params.id;
 
       // Verify customer belongs to business
-      const customer = await db.customers.findFirst({
+      const customer = await db.customer.findFirst({
         where: { id: customerId, businessId },
       });
 
@@ -175,7 +175,7 @@ export class CustomerController {
       const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
       const skip = (page - 1) * limit;
 
-      const conversations = await db.conversations.findMany({
+      const conversations = await db.conversation.findMany({
         where: { customerId, businessId },
         skip,
         take: limit,
@@ -189,7 +189,7 @@ export class CustomerController {
         },
       });
 
-      const total = await db.conversations.count({
+      const total = await db.conversation.count({
         where: { customerId, businessId },
       });
 
@@ -227,7 +227,7 @@ export class CustomerController {
       const customerId = req.params.id;
 
       // Verify customer belongs to business
-      const customer = await db.customers.findFirst({
+      const customer = await db.customer.findFirst({
         where: { id: customerId, businessId },
       });
 
@@ -237,14 +237,14 @@ export class CustomerController {
       }
 
       // Get conversation stats
-      const conversationStats = await db.conversations.groupBy({
+      const conversationStats = await db.conversation.groupBy({
         by: ['channel'],
         where: { customerId, businessId },
         _count: { id: true },
       });
 
       // Get message stats
-      const messageStats = await db.messages.aggregate({
+      const messageStats = await db.message.aggregate({
         where: {
           conversation: { customerId, businessId },
         },
@@ -253,7 +253,7 @@ export class CustomerController {
       });
 
       // Get recent activity
-      const recentConversations = await db.conversations.findMany({
+      const recentConversations = await db.conversation.findMany({
         where: { customerId, businessId },
         orderBy: { updatedAt: 'desc' },
         take: 5,
@@ -304,7 +304,7 @@ export class CustomerController {
       }
 
       // Verify customer belongs to business
-      const customer = await db.customers.findFirst({
+      const customer = await db.customer.findFirst({
         where: { id: customerId, businessId },
       });
 
@@ -317,7 +317,7 @@ export class CustomerController {
       const existingTags = customer.tags || [];
       const newTags = [...new Set([...existingTags, ...result.data.tags])];
 
-      const updatedCustomer = await db.customers.update({
+      const updatedCustomer = await db.customer.update({
         where: { id: customerId },
         data: { tags: newTags },
       });
@@ -354,7 +354,7 @@ export class CustomerController {
       }
 
       // Verify customer belongs to business
-      const customer = await db.customers.findFirst({
+      const customer = await db.customer.findFirst({
         where: { id: customerId, businessId },
       });
 
@@ -367,7 +367,7 @@ export class CustomerController {
       const existingTags = customer.tags || [];
       const newTags = existingTags.filter((tag) => !result.data.tags.includes(tag));
 
-      const updatedCustomer = await db.customers.update({
+      const updatedCustomer = await db.customer.update({
         where: { id: customerId },
         data: { tags: newTags },
       });
@@ -394,7 +394,7 @@ export class CustomerController {
       const customerId = req.params.id;
 
       // Verify customer belongs to business
-      const customer = await db.customers.findFirst({
+      const customer = await db.customer.findFirst({
         where: { id: customerId, businessId },
       });
 
@@ -403,7 +403,7 @@ export class CustomerController {
         return;
       }
 
-      const updatedCustomer = await db.customers.update({
+      const updatedCustomer = await db.customer.update({
         where: { id: customerId },
         data: {
           isVerified: true,
@@ -452,7 +452,7 @@ export class CustomerController {
       }
 
       // Verify customer belongs to business
-      const customer = await db.customers.findFirst({
+      const customer = await db.customer.findFirst({
         where: { id: customerId, businessId },
       });
 
@@ -462,8 +462,8 @@ export class CustomerController {
       }
 
       const currentMetadata = (customer.metadata as object) || {};
-      
-      const updatedCustomer = await db.customers.update({
+
+      const updatedCustomer = await db.customer.update({
         where: { id: customerId },
         data: {
           metadata: {

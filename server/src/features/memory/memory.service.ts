@@ -156,8 +156,8 @@ export class MemoryService {
         content: string,
         channel: string,
         metadata?: Record<string, any>,
-    ): Promise<void> {
-        await db.message.create({
+    ): Promise<any> {
+        return await db.message.create({
             data: {
                 conversationId,
                 role,

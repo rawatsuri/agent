@@ -14,6 +14,7 @@ export enum MessageRole {
   USER = 'USER',
   ASSISTANT = 'ASSISTANT',
   SYSTEM = 'SYSTEM',
+  TOOL = 'TOOL',
 }
 
 export enum ConversationStatus {
@@ -56,6 +57,9 @@ export interface IConversationContext {
     phone?: string;
     email?: string;
     preferences?: Record<string, any>;
+    trustScore?: number;
+    isVerified?: boolean;
+    tags?: string[];
   };
   recentMessages: Array<{
     role: MessageRole;

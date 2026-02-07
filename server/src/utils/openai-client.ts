@@ -48,7 +48,7 @@ export class OpenAIClient {
         return this.withTimeout(
             () => this.withRetry(
                 () => this.circuitBreaker.execute(
-                    () => this.client.chat.completions.create(params)
+                    () => this.client.chat.completions.create(params) as Promise<OpenAI.Chat.ChatCompletion>
                 ),
                 maxRetries
             ),
@@ -164,7 +164,7 @@ export class OpenAIClient {
     /**
      * Check if error is retryable
      */
-    private isRetryable(error: any): boolean {
+    private isRetryableError(error: any): boolean {
         // Retry on rate limits, timeouts, and 5xx errors
         return (
             error.status === 429 ||  // Rate limit

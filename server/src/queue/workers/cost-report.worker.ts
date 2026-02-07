@@ -22,7 +22,7 @@ if (process.env.SENDGRID_API_KEY) {
  */
 export const startCostReportWorker = (): Worker => {
   const options = getDefaultWorkerOptions();
-  
+
   const worker = new Worker(
     QUEUE_NAMES.COST_REPORTS,
     async (job: Job) => {
@@ -129,9 +129,9 @@ async function processDailyReport(jobId: string, data: CostReportJobData): Promi
       };
 
       // Get recipients
-      const recipients = emailRecipients?.length
-        ? emailRecipients
-        : [business.email].filter(Boolean);
+      const recipients: string[] = emailRecipients?.length
+        ? emailRecipients.filter((email): email is string => email !== null)
+        : [business.email].filter((email): email is string => email !== null && email !== undefined);
 
       if (recipients.length === 0) {
         logger.warn({ jobId, businessId: business.id }, 'No email recipients for report');

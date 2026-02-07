@@ -125,7 +125,7 @@ export class FAQController {
   static async updateFAQ(req: Request, res: Response): Promise<void> {
     try {
       const businessId = req.business!.id;
-      const faqId = req.params.id;
+      const faqId = req.params.id as string;
 
       const schema = z.object({
         question: z.string().min(5).max(500).optional(),
@@ -178,7 +178,7 @@ export class FAQController {
   static async deleteFAQ(req: Request, res: Response): Promise<void> {
     try {
       const businessId = req.business!.id;
-      const faqId = req.params.id;
+      const faqId = req.params.id as string;
 
       // Verify FAQ belongs to business
       const existingFAQ = await db.businessFAQ.findFirst({

@@ -465,7 +465,7 @@ export class PersonalizationService {
             where: { id: params.customerId },
             include: {
                 conversations: {
-                    orderBy: { createdAt: 'desc' },
+                    orderBy: { startedAt: 'desc' },
                     take: 5,
                 },
                 memories: {

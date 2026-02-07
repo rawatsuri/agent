@@ -50,7 +50,7 @@ router.post('/ab-tests', clerkAuth, async (req: Request, res: Response) => {
 
         resSuccess(res, { data: test, message: 'A/B test created successfully' });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -70,7 +70,7 @@ router.get('/ab-tests', clerkAuth, async (req: Request, res: Response) => {
 
         resSuccess(res, { data: tests });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -92,7 +92,7 @@ router.get('/ab-tests/:id', clerkAuth, async (req: Request, res: Response) => {
 
         resSuccess(res, { data: test });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -108,7 +108,7 @@ router.post('/ab-tests/:id/start', clerkAuth, async (req: Request, res: Response
 
         resSuccess(res, { data: test, message: 'A/B test started' });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -124,7 +124,7 @@ router.get('/ab-tests/:id/results', clerkAuth, async (req: Request, res: Respons
 
         resSuccess(res, { data: results });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -157,7 +157,7 @@ router.post('/personalize', clerkAuth, async (req: Request, res: Response) => {
 
         resSuccess(res, { data: { message: personalized } });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -177,7 +177,7 @@ router.get('/recommendations/:customerId', clerkAuth, async (req: Request, res: 
 
         resSuccess(res, { data: recommendations });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -206,7 +206,7 @@ router.post('/segment', clerkAuth, async (req: Request, res: Response) => {
 
         resSuccess(res, { data: segment });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 

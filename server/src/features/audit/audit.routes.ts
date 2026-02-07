@@ -53,7 +53,7 @@ router.get(
                 },
             });
         } catch (error) {
-            resError(res, error as Error, 500);
+            resError(res, (error as Error).message, 500);
         }
     }
 );
@@ -70,7 +70,7 @@ router.get(
             const { resource, id } = req.params;
             const businessId = (req as any).businessId;
 
-            const history = await AuditLoggerService.getResourceHistory(resource, id);
+            const history = await AuditLoggerService.getResourceHistory(resource as string, id as string);
 
             // Filter by business for security
             const filtered = history.filter(
@@ -79,7 +79,7 @@ router.get(
 
             resSuccess(res, { data: filtered });
         } catch (error) {
-            resError(res, error as Error, 500);
+            resError(res, (error as Error).message, 500);
         }
     }
 );
@@ -110,7 +110,7 @@ router.post(
 
             resSuccess(res, { data: report });
         } catch (error) {
-            resError(res, error as Error, 500);
+            resError(res, (error as Error).message, 500);
         }
     }
 );
@@ -146,7 +146,7 @@ router.get(
                 },
             });
         } catch (error) {
-            resError(res, error as Error, 500);
+            resError(res, (error as Error).message, 500);
         }
     }
 );

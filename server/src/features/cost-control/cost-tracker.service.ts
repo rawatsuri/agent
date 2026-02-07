@@ -67,7 +67,7 @@ export class CostTrackerService {
     businessId: string;
     customerId?: string;
     conversationId?: string;
-    service: 'EXOTEL_SMS' | 'EXOTEL_VOICE' | 'TWILIO_SMS' | 'TWILIO_VOICE' | 'SENDGRID_EMAIL' | 'WHATSAPP_API' | 'INSTAGRAM_API';
+    service: 'EXOTEL_SMS' | 'EXOTEL_VOICE' | 'TWILIO_SMS' | 'TWILIO_VOICE' | 'SENDGRID_EMAIL' | 'WHATSAPP_API' | 'INSTAGRAM_API' | 'SALESFORCE_API' | 'HUBSPOT_API' | 'ZOHO_API';
     cost: number;
     durationSeconds?: number; // For voice calls
     channel?: Channel;
@@ -134,10 +134,10 @@ export class CostTrackerService {
     };
 
     const modelPricing = pricing[model] || pricing['gpt-4o-mini'];
-    
+
     const inputCost = (inputTokens / 1000) * modelPricing.input;
     const outputCost = (outputTokens / 1000) * modelPricing.output;
-    
+
     return inputCost + outputCost;
   }
 
@@ -188,13 +188,13 @@ export class CostTrackerService {
 
     for (const log of logs) {
       summary.totalCost += Number(log.cost);
-      
+
       summary.byService[log.service] = (summary.byService[log.service] || 0) + Number(log.cost);
-      
+
       if (log.channel) {
         summary.byChannel[log.channel] = (summary.byChannel[log.channel] || 0) + Number(log.cost);
       }
-      
+
       if (log.tokensUsed) {
         summary.tokenCount += log.tokensUsed;
       }
@@ -241,7 +241,7 @@ export class CostTrackerService {
 
     // Group by date
     const dailySpendMap = new Map<string, number>();
-    
+
     for (const log of logs) {
       const date = log.createdAt.toISOString().split('T')[0];
       const current = dailySpendMap.get(date) || 0;
@@ -252,7 +252,7 @@ export class CostTrackerService {
       .map(([date, cost]) => ({ date, cost: Math.round(cost * 10000) / 10000 }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
-    const budgetUsedPercent = credit.monthlyBudget > 0
+    const budgetUsedPercent = Number(credit.monthlyBudget) > 0
       ? Math.round((Number(credit.currentMonthSpend) / Number(credit.monthlyBudget)) * 100)
       : 0;
 

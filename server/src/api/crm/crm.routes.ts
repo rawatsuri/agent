@@ -19,7 +19,7 @@ const router = Router();
 router.get('/config', clerkAuth, async (req: Request, res: Response) => {
     try {
         const businessId = (req as any).businessId;
-        
+
         const config = await db.cRMIntegration.findUnique({
             where: { businessId },
         });
@@ -44,7 +44,7 @@ router.get('/config', clerkAuth, async (req: Request, res: Response) => {
             },
         });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -55,7 +55,7 @@ router.get('/config', clerkAuth, async (req: Request, res: Response) => {
 router.post('/config', clerkAuth, async (req: Request, res: Response) => {
     try {
         const businessId = (req as any).businessId;
-        
+
         const schema = z.object({
             provider: z.nativeEnum(CRMProvider),
             apiKey: z.string().optional(),
@@ -137,12 +137,12 @@ router.post('/sync/:customerId', clerkAuth, async (req: Request, res: Response) 
         }
 
         const connector = CRMFactory.getConnector(config);
-        
+
         let result;
         if (entityType === 'contact') {
-            result = await connector.syncContact(customerId);
+            result = await connector.syncContact(customerId as string);
         } else if (entityType === 'lead') {
-            result = await connector.syncLead(customerId);
+            result = await connector.syncLead(customerId as string);
         } else {
             return resError(res, new Error('Invalid entity type'), 400);
         }
@@ -153,7 +153,7 @@ router.post('/sync/:customerId', clerkAuth, async (req: Request, res: Response) 
             resError(res, new Error(result.message), 400);
         }
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -164,7 +164,7 @@ router.post('/sync/:customerId', clerkAuth, async (req: Request, res: Response) 
 router.post('/opportunities', clerkAuth, async (req: Request, res: Response) => {
     try {
         const businessId = (req as any).businessId;
-        
+
         const schema = z.object({
             customerId: z.string(),
             name: z.string(),
@@ -188,7 +188,7 @@ router.post('/opportunities', clerkAuth, async (req: Request, res: Response) => 
             resError(res, new Error(result.message), 400);
         }
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -199,7 +199,7 @@ router.post('/opportunities', clerkAuth, async (req: Request, res: Response) => 
 router.post('/cases', clerkAuth, async (req: Request, res: Response) => {
     try {
         const businessId = (req as any).businessId;
-        
+
         const schema = z.object({
             customerId: z.string(),
             subject: z.string(),
@@ -223,7 +223,7 @@ router.post('/cases', clerkAuth, async (req: Request, res: Response) => {
             resError(res, new Error(result.message), 400);
         }
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -260,7 +260,7 @@ router.get('/test', clerkAuth, async (req: Request, res: Response) => {
 router.post('/webhooks', clerkAuth, async (req: Request, res: Response) => {
     try {
         const businessId = (req as any).businessId;
-        
+
         const schema = z.object({
             webhookUrl: z.string().url(),
             secret: z.string().optional(),
@@ -294,7 +294,7 @@ router.post('/webhooks', clerkAuth, async (req: Request, res: Response) => {
 
         resSuccess(res, { data: { message: 'Webhook configured successfully' } });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -315,7 +315,7 @@ router.post('/webhooks/test', clerkAuth, async (req: Request, res: Response) => 
 
         resSuccess(res, { data: result });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 

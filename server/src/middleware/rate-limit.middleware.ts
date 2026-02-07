@@ -17,15 +17,15 @@ export const rateLimitMiddleware = async (
   next: NextFunction
 ) => {
   try {
-    const businessId = req.headers['x-business-id'] as string || req.params.businessId;
-    const customerId = req.headers['x-customer-id'] as string || req.params.customerId;
-    const channel = req.headers['x-channel'] as string || 'CHAT';
+    const businessId = (req.headers['x-business-id'] as string) || req.params.businessId;
+    const customerId = (req.headers['x-customer-id'] as string) || req.params.customerId;
+    const channel = (req.headers['x-channel'] as string) || 'CHAT';
     const type = req.path.includes('voice') || req.path.includes('call') ? 'CALL' : 'MESSAGE';
-    
+
     // Get IP address
-    const ipAddress = req.headers['x-forwarded-for'] as string || 
-                      req.socket.remoteAddress || 
-                      'unknown';
+    const ipAddress = (req.headers['x-forwarded-for'] as string) ||
+      req.socket.remoteAddress ||
+      'unknown';
 
     if (!businessId) {
       res.status(400).json({
@@ -95,7 +95,7 @@ export const rateLimitMiddleware = async (
     // Step 4: Check IP-based limit (especially for unknown customers)
     const isKnownCustomer = !!customerId;
     const ipLimit = await RateLimiterService.checkIPLimit(ipAddress, isKnownCustomer);
-    
+
     if (!ipLimit.allowed) {
       res.status(429).json({
         success: false,

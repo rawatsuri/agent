@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { db } from '@/config/database';
+import { Channel } from '@prisma/client';
 import { logger } from '@/utils/logger';
 import { getRedisClient } from '@/config/redis';
 import { createHash } from 'crypto';
@@ -431,7 +432,7 @@ export class SemanticCacheService {
         queryText: params.query,
         queryNormalized: this.normalizeQuery(params.query),
         responseText: params.response,
-        queryVector: params.embedding as any,
+        // queryVector: params.embedding as any, // Unsupported type in Prisma Client
         expiresAt,
         sourceChannel: params.channel,
         customerId: params.customerId,
@@ -748,7 +749,7 @@ export class SemanticCacheService {
           question: faq.question,
           answer: faq.answer,
           category: faq.category || 'general',
-          embedding: embedding as any,
+          // embedding: embedding as any, // Unsupported type in Prisma Client
           isActive: true,
         },
       });

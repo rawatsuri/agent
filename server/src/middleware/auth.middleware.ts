@@ -146,3 +146,5 @@ export const apiKeyAuth = async (
     });
   }
 };
+
+export const authenticateAdmin = apiKeyAuth;

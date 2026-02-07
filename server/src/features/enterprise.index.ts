@@ -34,19 +34,19 @@
  */
 
 // Advanced AI
-export * from './features/ai-advanced';
+export * from './ai-advanced';
 
 // CRM Integrations
 export * from './integrations';
 
 // Advanced Analytics
-export * from './analytics/advanced';
+export * from '../analytics/advanced';
 
 // White-Label
-export * from './features/white-label';
+export * from './white-label';
 
 // Advanced Campaigns
-export * from './features/campaigns-advanced';
+export * from './campaigns-advanced';
 
 // Audit Logging
-export * from './features/audit';
+export * from './audit';

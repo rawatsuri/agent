@@ -13,7 +13,7 @@
 import { db } from '@/config/database';
 import { MemoryService } from '@/features/memory/memory.service';
 import { logger } from '@/utils/logger';
-import type { IConversationContext, Channel } from '@/types/channel.types';
+import { type IConversationContext, type Channel, MessageRole } from '@/types/channel.types';
 
 export interface ContextBuildOptions {
   customerId: string;
@@ -55,7 +55,7 @@ export class ContextBuilderService {
    */
   static async buildContext(options: ContextBuildOptions): Promise<EnrichedContext> {
     const startTime = Date.now();
-    
+
     try {
       // Fetch all context data in parallel
       const [
@@ -203,7 +203,7 @@ export class ContextBuilderService {
     return messages
       .reverse()
       .map((m) => ({
-        role: m.role,
+        role: m.role as unknown as MessageRole,
         content: m.content,
         timestamp: m.createdAt,
         channel: m.channel,

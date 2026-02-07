@@ -126,8 +126,8 @@ export class CustomerService {
 
         if (primary && duplicate) {
             const mergedMetadata = {
-                ...primary.metadata,
-                ...duplicate.metadata,
+                ...(primary.metadata as Record<string, any>),
+                ...(duplicate.metadata as Record<string, any>),
                 mergedFrom: duplicateId,
                 mergedAt: new Date(),
             };

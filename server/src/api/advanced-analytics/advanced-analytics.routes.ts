@@ -41,7 +41,7 @@ router.get('/funnel', clerkAuth, async (req: Request, res: Response) => {
 router.post('/funnel/compare', clerkAuth, async (req: Request, res: Response) => {
     try {
         const businessId = (req as any).businessId;
-        
+
         const schema = z.object({
             period1Start: z.string().datetime(),
             period1End: z.string().datetime(),
@@ -127,7 +127,11 @@ router.get('/behavior-patterns', clerkAuth, async (req: Request, res: Response) 
 
         resSuccess(res, { data: patterns });
     } catch (error) {
-        resError(res, error as Error, 500);
+        if ((error as any).message === 'Not implemented') {
+            resError(res, 'Not implemented', 501);
+        } else {
+            resError(res, 'Failed to generate report', 500, (error as any).message);
+        }
     }
 });
 

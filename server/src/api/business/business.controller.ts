@@ -17,7 +17,7 @@ export class BusinessController {
     try {
       const businessId = req.business!.id;
 
-      const business = await db.businesses.findUnique({
+      const business = await db.business.findUnique({
         where: { id: businessId },
         include: {
           credits: true,
@@ -50,23 +50,23 @@ export class BusinessController {
         },
         credit: business.credits
           ? {
-              planType: business.credits.planType,
-              totalCredits: Number(business.credits.totalCredits),
-              availableCredits:
-                Number(business.credits.totalCredits) -
-                Number(business.credits.usedCredits),
-              monthlyBudget: Number(business.credits.monthlyBudget),
-              currentMonthSpend: Number(business.credits.currentMonthSpend),
-              isPaused: business.credits.isPaused,
-              percentUsed:
-                Number(business.credits.monthlyBudget) > 0
-                  ? Math.round(
-                      (Number(business.credits.currentMonthSpend) /
-                        Number(business.credits.monthlyBudget)) *
-                        100
-                    )
-                  : 0,
-            }
+            planType: business.credits.planType,
+            totalCredits: Number(business.credits.totalCredits),
+            availableCredits:
+              Number(business.credits.totalCredits) -
+              Number(business.credits.usedCredits),
+            monthlyBudget: Number(business.credits.monthlyBudget),
+            currentMonthSpend: Number(business.credits.currentMonthSpend),
+            isPaused: business.credits.isPaused,
+            percentUsed:
+              Number(business.credits.monthlyBudget) > 0
+                ? Math.round(
+                  (Number(business.credits.currentMonthSpend) /
+                    Number(business.credits.monthlyBudget)) *
+                  100
+                )
+                : 0,
+          }
           : null,
       });
     } catch (error) {
@@ -95,7 +95,7 @@ export class BusinessController {
         return;
       }
 
-      const business = await db.businesses.update({
+      const business = await db.business.update({
         where: { id: businessId },
         data: result.data,
       });
@@ -123,7 +123,7 @@ export class BusinessController {
     try {
       const businessId = req.business!.id;
 
-      const business = await db.businesses.findUnique({
+      const business = await db.business.findUnique({
         where: { id: businessId },
         select: {
           id: true,
@@ -138,7 +138,7 @@ export class BusinessController {
 
       // Parse config or return defaults
       const config = (business.config as any) || {};
-      
+
       resSuccess(res, {
         personality: config.personality || 'professional',
         tone: config.tone || 'friendly',
@@ -188,7 +188,7 @@ export class BusinessController {
         return;
       }
 
-      const business = await db.businesses.update({
+      const business = await db.business.update({
         where: { id: businessId },
         data: {
           config: result.data,
@@ -225,7 +225,7 @@ export class BusinessController {
       }
 
       // Get recent cost logs
-      const recentCosts = await db.costLogs.findMany({
+      const recentCosts = await db.costLog.findMany({
         where: { businessId },
         orderBy: { createdAt: 'desc' },
         take: 10,
@@ -251,8 +251,8 @@ export class BusinessController {
           percentUsed:
             Number(credit.monthlyBudget) > 0
               ? Math.round(
-                  (Number(credit.currentMonthSpend) / Number(credit.monthlyBudget)) * 100
-                )
+                (Number(credit.currentMonthSpend) / Number(credit.monthlyBudget)) * 100
+              )
               : 0,
         },
         status: {
