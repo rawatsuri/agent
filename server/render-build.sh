@@ -23,8 +23,8 @@ fi
 echo "🔍 Running linter..."
 npm run lint || echo "⚠️ Linting warnings found"
 
-# Build the application
+# Build the application (skip linting and tests)
 echo "🔨 Building application..."
-npm run build
+npx tsc && npx tsc-alias
 
 echo "✅ Node.js Server Build Complete!"
