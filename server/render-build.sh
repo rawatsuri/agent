@@ -13,8 +13,16 @@ npm install
 echo "🔄 Generating Prisma Client..."
 npx prisma generate
 
-# Build the application (skip linting and tests)
-echo "🔨 Building application..."
-npx tsc && npx tsc-alias
+# Clean dist directory
+echo "🧹 Cleaning dist directory..."
+rm -rf dist
+
+# Compile TypeScript
+echo "🔨 Compiling TypeScript..."
+npx tsc
+
+# Resolve path aliases
+echo "🔗 Resolving path aliases..."
+npx tsc-alias
 
 echo "✅ Node.js Server Build Complete!"
