@@ -7,7 +7,7 @@ echo "🚀 Starting Node.js Server Build..."
 
 # Install dependencies
 echo "📦 Installing dependencies..."
-npm ci
+npm install
 
 # Generate Prisma Client
 echo "🔄 Generating Prisma Client..."
