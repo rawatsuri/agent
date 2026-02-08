@@ -96,22 +96,23 @@ services:
       - key: VOICE_BRIDGE_URL
         sync: false
 
-  # Python Voice Bridge Service (Optional)
+  # Python Voice Bridge Service (Exotel + Vocode)
   - type: web
     name: omnichannel-ai-voice
-    runtime: python
+    runtime: docker
     plan: standard
     region: singapore
     rootDir: voice-bridge
-    buildCommand: pip install -r requirements.txt
-    startCommand: python app.py
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /health
     autoDeploy: true
     envVars:
       - key: PORT
         value: 10000
-      - key: PYTHONPATH
-        value: .
+      - key: ENVIRONMENT
+        value: production
+      - key: BASE_URL
+        value: agent-2-zc37.onrender.com
       - key: NODE_API_URL
         fromService:
           type: web
@@ -121,9 +122,9 @@ services:
         sync: false
       - key: OPENAI_API_KEY
         sync: false
-      - key: AZURE_TTS_KEY
+      - key: AZURE_SPEECH_KEY
         sync: false
-      - key: AZURE_TTS_REGION
+      - key: AZURE_SPEECH_REGION
         sync: false
       - key: EXOTEL_API_KEY
         sync: false

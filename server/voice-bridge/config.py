@@ -19,15 +19,21 @@ load_dotenv(ENV_FILE)
 class Settings(BaseSettings):
     """Application settings with validation"""
     
-    # Environment
+    # Environment - check both ENVIRONMENT and NODE_ENV
     ENVIRONMENT: str = Field(default="development", pattern="^(development|staging|production)$")
     ENV_FILE: Path = Field(default=ENV_FILE)
     
-    # Server Configuration
+    # Server Configuration - Render uses PORT env var
     VOICE_BRIDGE_HOST: str = Field(default="0.0.0.0")
-    VOICE_BRIDGE_PORT: int = Field(default=8000, ge=1, le=65535)
+    PORT: int = Field(default=10000, ge=1, le=65535)  # Render uses PORT
+    VOICE_BRIDGE_PORT: int = Field(default=10000, ge=1, le=65535)  # Fallback
     WORKERS: int = Field(default=1, ge=1, le=16)
     MAX_CONCURRENT_CALLS: int = Field(default=10, ge=1, le=100)
+    
+    @property
+    def server_port(self) -> int:
+        """Get the port - prefer PORT (Render) over VOICE_BRIDGE_PORT"""
+        return self.PORT or self.VOICE_BRIDGE_PORT or 10000
     
     # Node.js API Configuration
     NODE_API_URL: str = Field(default="http://localhost:3000")
@@ -50,11 +56,23 @@ class Settings(BaseSettings):
     # Base URL for webhooks (e.g., ngrok URL or production domain)
     BASE_URL: str = Field(default="localhost:8000")
     
-    # Azure Speech Services
+    # Azure Speech Services (accept both naming conventions)
     AZURE_SPEECH_KEY: str = Field(default="")
+    AZURE_TTS_KEY: str = Field(default="")  # Alias
     AZURE_SPEECH_REGION: str = Field(default="")
+    AZURE_TTS_REGION: str = Field(default="")  # Alias
     AZURE_SPEECH_VOICE: str = Field(default="en-US-JennyNeural")
     AZURE_SPEECH_RATE: str = Field(default="default")  # default, slow, fast
+    
+    @property
+    def azure_key(self) -> str:
+        """Get Azure Speech key (prefer AZURE_SPEECH_KEY)"""
+        return self.AZURE_SPEECH_KEY or self.AZURE_TTS_KEY
+    
+    @property
+    def azure_region(self) -> str:
+        """Get Azure region (prefer AZURE_SPEECH_REGION)"""
+        return self.AZURE_SPEECH_REGION or self.AZURE_TTS_REGION
     
     # OpenAI Configuration (for Whisper if needed)
     OPENAI_API_KEY: Optional[str] = Field(default=None)

@@ -241,7 +241,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "app:app",
         host=settings.VOICE_BRIDGE_HOST,
-        port=settings.VOICE_BRIDGE_PORT,
+        port=settings.server_port,  # Uses PORT env var from Render
         reload=settings.ENVIRONMENT == "development",
         workers=1 if settings.ENVIRONMENT == "development" else settings.WORKERS,
         log_level="info" if settings.ENVIRONMENT == "production" else "debug"
