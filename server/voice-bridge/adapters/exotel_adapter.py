@@ -402,14 +402,22 @@ class ExotelAdapter:
                 "active_calls": len(self.active_calls),
             }
         
+        @router.get("/voice")
         @router.post("/voice")
         async def exotel_voice(request: Request):
             """Handle Exotel incoming call webhook (TwiML response)"""
             try:
-                form = await request.form()
-                call_sid = form.get("CallSid") or form.get("callSid")
-                from_number = form.get("From") or form.get("CallFrom")
-                to_number = form.get("To") or form.get("CallTo")
+                # Handle both GET (query params) and POST (form data)
+                if request.method == "GET":
+                    params = dict(request.query_params)
+                    call_sid = params.get("CallSid") or params.get("callSid")
+                    from_number = params.get("From") or params.get("CallFrom")
+                    to_number = params.get("To") or params.get("CallTo")
+                else:
+                    form = await request.form()
+                    call_sid = form.get("CallSid") or form.get("callSid")
+                    from_number = form.get("From") or form.get("CallFrom")
+                    to_number = form.get("To") or form.get("CallTo")
                 
                 logger.info(f"📞 Incoming call from {mask_phone_number(from_number)} to {mask_phone_number(to_number)}")
                 
