@@ -19,7 +19,7 @@ class SimpleExotelAdapter:
     
     def get_webhook_routes(self):
         """Return FastAPI routes for Exotel webhooks"""
-        router = APIRouter(prefix="/exotel", tags=["exotel"])
+        router = APIRouter(prefix="/webhooks/exotel", tags=["exotel"])
         
         @router.get("/voice")
         @router.post("/voice")
