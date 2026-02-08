@@ -21,12 +21,8 @@ export const getRedisClient = (): IORedis => {
                     const delay = Math.min(times * 50, 2000);
                     return delay;
                 },
-                // Connection pool settings for Render free tier
                 lazyConnect: true,
                 keepAlive: 30000,
-                maxSockets: 5,
-                maxFreeSockets: 2,
-                freeSocketTimeout: 30000,
             });
 
             redis.on('connect', () => {
@@ -70,7 +66,6 @@ export const getBullRedisClient = (): IORedis => {
                 maxRetriesPerRequest: null,
                 enableReadyCheck: false,
                 lazyConnect: true,
-                maxSockets: 3,
                 retryStrategy(times) {
                     const delay = Math.min(times * 50, 2000);
                     return delay;
