@@ -3,11 +3,14 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies for audio + health checks
+# Install ALL system dependencies for vocode + audio
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libffi-dev \
     libsndfile1 \
+    libportaudio2 \
+    portaudio19-dev \
+    ffmpeg \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -25,7 +28,7 @@ COPY . .
 EXPOSE 10000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:10000/health || exit 1
 
 # Use PORT env var from Render
