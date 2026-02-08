@@ -3,6 +3,14 @@ import { logger } from '@/utils/logger';
 
 let redis: IORedis | null = null;
 let bullRedis: IORedis | null = null;
+let redisAvailable = true;
+
+/**
+ * Check if Redis is available and working
+ */
+export const isRedisEnabled = (): boolean => {
+    return redisAvailable;
+};
 
 export const getRedisClient = (): IORedis => {
     if (!redis) {
@@ -30,7 +38,12 @@ export const getRedisClient = (): IORedis => {
             });
 
             redis.on('error', (err) => {
-                logger.error({ err }, 'Redis connection error');
+                if (err.message?.includes('max number of clients reached')) {
+                    logger.error('Redis client limit reached, disabling Redis features');
+                    redisAvailable = false;
+                } else {
+                    logger.error({ err }, 'Redis connection error');
+                }
             });
 
             // Graceful shutdown
@@ -41,6 +54,7 @@ export const getRedisClient = (): IORedis => {
             });
         } catch (err) {
             logger.error({ err }, 'Failed to initialize Redis');
+            redisAvailable = false;
             return createMockRedis() as unknown as IORedis;
         }
     }
@@ -77,7 +91,12 @@ export const getBullRedisClient = (): IORedis => {
             });
 
             bullRedis.on('error', (err) => {
-                logger.error({ err }, 'BullMQ Redis connection error');
+                if (err.message?.includes('max number of clients reached')) {
+                    logger.error('Redis client limit reached, disabling BullMQ features');
+                    redisAvailable = false;
+                } else {
+                    logger.error({ err }, 'BullMQ Redis connection error');
+                }
             });
 
             // Graceful shutdown
@@ -88,6 +107,7 @@ export const getBullRedisClient = (): IORedis => {
             });
         } catch (err) {
             logger.error({ err }, 'Failed to initialize BullMQ Redis');
+            redisAvailable = false;
             return createMockRedis() as unknown as IORedis;
         }
     }
