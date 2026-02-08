@@ -13,8 +13,13 @@ import { logger } from '@/utils/logger';
 /**
  * Start the embedding worker
  */
-export const startEmbeddingWorker = (): Worker => {
+export const startEmbeddingWorker = (): Worker | null => {
   const options = getDefaultWorkerOptions();
+  
+  if (!options) {
+    logger.warn('Worker options not available (Redis disabled), skipping embedding worker');
+    return null;
+  }
   
   const worker = new Worker(
     QUEUE_NAMES.EMBEDDINGS,

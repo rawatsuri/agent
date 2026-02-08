@@ -20,8 +20,13 @@ if (process.env.SENDGRID_API_KEY) {
 /**
  * Start the cost report worker
  */
-export const startCostReportWorker = (): Worker => {
+export const startCostReportWorker = (): Worker | null => {
   const options = getDefaultWorkerOptions();
+
+  if (!options) {
+    logger.warn('Worker options not available (Redis disabled), skipping cost report worker');
+    return null;
+  }
 
   const worker = new Worker(
     QUEUE_NAMES.COST_REPORTS,

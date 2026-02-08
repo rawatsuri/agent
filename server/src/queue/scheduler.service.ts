@@ -19,6 +19,10 @@ export class JobSchedulerService {
    */
   static async scheduleDailyCostReports(): Promise<void> {
     const queue = getCostReportQueue();
+    if (!queue) {
+      logger.warn('Queue not available, skipping daily cost reports schedule');
+      return;
+    }
 
     // Remove existing repeatable job
     await this.removeRepeatableJob(queue, JOB_NAMES.COST_REPORTS.DAILY_REPORT);
@@ -43,6 +47,10 @@ export class JobSchedulerService {
    */
   static async scheduleWeeklyCostReports(): Promise<void> {
     const queue = getCostReportQueue();
+    if (!queue) {
+      logger.warn('Queue not available, skipping weekly cost reports schedule');
+      return;
+    }
 
     await this.removeRepeatableJob(queue, JOB_NAMES.COST_REPORTS.WEEKLY_REPORT);
 
@@ -65,6 +73,10 @@ export class JobSchedulerService {
    */
   static async scheduleMonthlyCostReports(): Promise<void> {
     const queue = getCostReportQueue();
+    if (!queue) {
+      logger.warn('Queue not available, skipping monthly cost reports schedule');
+      return;
+    }
 
     await this.removeRepeatableJob(queue, JOB_NAMES.COST_REPORTS.MONTHLY_REPORT);
 
@@ -87,6 +99,10 @@ export class JobSchedulerService {
    */
   static async scheduleCacheWarming(): Promise<void> {
     const queue = getCacheWarmerQueue();
+    if (!queue) {
+      logger.warn('Queue not available, skipping cache warming schedule');
+      return;
+    }
 
     await this.removeRepeatableJob(queue, JOB_NAMES.CACHE_WARMER.WARM_FAQS);
 
@@ -109,6 +125,10 @@ export class JobSchedulerService {
    */
   static async scheduleCampaignTriggerChecks(): Promise<void> {
     const queue = getProactiveCampaignQueue();
+    if (!queue) {
+      logger.warn('Queue not available, skipping campaign trigger checks schedule');
+      return;
+    }
 
     await this.removeRepeatableJob(queue, JOB_NAMES.PROACTIVE_CAMPAIGNS.CHECK_TRIGGERS);
 
@@ -131,6 +151,10 @@ export class JobSchedulerService {
    */
   static async scheduleConversationCleanup(): Promise<void> {
     const queue = getSummaryQueue();
+    if (!queue) {
+      logger.warn('Queue not available, skipping conversation cleanup schedule');
+      return;
+    }
 
     // We use the summary queue for cleanup jobs too
     await queue.add(

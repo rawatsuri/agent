@@ -24,14 +24,14 @@ export const initializeWorkers = async (): Promise<void> => {
   logger.info('Initializing background workers...');
 
   try {
-    // Start all workers
+    // Start all workers (filter out null if Redis is not available)
     const workers = [
       startEmbeddingWorker(),
       startSummaryWorker(),
       startCostReportWorker(),
       startCacheWarmerWorker(),
       startProactiveCampaignWorker(),
-    ];
+    ].filter((worker): worker is Worker => worker !== null);
 
     activeWorkers.push(...workers);
 

@@ -22,8 +22,13 @@ import { getProactiveCampaignQueue } from '../queue.config';
 /**
  * Start the proactive campaign worker
  */
-export const startProactiveCampaignWorker = (): Worker => {
+export const startProactiveCampaignWorker = (): Worker | null => {
   const options = getDefaultWorkerOptions();
+
+  if (!options) {
+    logger.warn('Worker options not available (Redis disabled), skipping proactive campaign worker');
+    return null;
+  }
 
   const worker = new Worker(
     QUEUE_NAMES.PROACTIVE_CAMPAIGNS,
@@ -158,6 +163,11 @@ async function processExecuteCampaign(jobId: string, data: ExecuteCampaignJobDat
 
     // Queue individual message jobs
     const queue = getProactiveCampaignQueue();
+    if (!queue) {
+      logger.warn('Queue not available, cannot send campaign messages');
+      return;
+    }
+    
     let queuedCount = 0;
 
     for (const customer of customers) {
@@ -358,10 +368,14 @@ async function processCheckTriggers(jobId: string, data: CheckTriggersJobData): 
 
         // Execute the campaign
         const queue = getProactiveCampaignQueue();
-        await queue.add(JOB_NAMES.PROACTIVE_CAMPAIGNS.EXECUTE_CAMPAIGN, {
-          campaignId: campaign.id,
-          businessId: campaign.businessId,
-        });
+        if (queue) {
+          await queue.add(JOB_NAMES.PROACTIVE_CAMPAIGNS.EXECUTE_CAMPAIGN, {
+            campaignId: campaign.id,
+            businessId: campaign.businessId,
+          });
+        } else {
+          logger.warn({ campaignId: campaign.id }, 'Queue not available, cannot execute campaign');
+        }
       }
     } catch (error) {
       logger.error({ error, jobId, campaignId: campaign.id }, 'Failed to check campaign trigger');

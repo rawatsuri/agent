@@ -18,8 +18,13 @@ const openai = new OpenAI({
 /**
  * Start the summary worker
  */
-export const startSummaryWorker = (): Worker => {
+export const startSummaryWorker = (): Worker | null => {
   const options = getDefaultWorkerOptions();
+  
+  if (!options) {
+    logger.warn('Worker options not available (Redis disabled), skipping summary worker');
+    return null;
+  }
   
   const worker = new Worker(
     QUEUE_NAMES.SUMMARIES,

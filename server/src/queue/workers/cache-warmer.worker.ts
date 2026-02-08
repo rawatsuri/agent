@@ -17,8 +17,13 @@ import { Channel } from '@prisma/client';
 /**
  * Start the cache warmer worker
  */
-export const startCacheWarmerWorker = (): Worker => {
+export const startCacheWarmerWorker = (): Worker | null => {
   const options = getDefaultWorkerOptions();
+
+  if (!options) {
+    logger.warn('Worker options not available (Redis disabled), skipping cache warmer worker');
+    return null;
+  }
 
   const worker = new Worker(
     QUEUE_NAMES.CACHE_WARMER,
