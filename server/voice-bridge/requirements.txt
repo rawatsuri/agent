@@ -1,5 +1,5 @@
-# Voice Bridge - Python Service Requirements
-# Self-hosted Vocode for telephony integration (Render-compatible)
+# Voice Bridge - Full requirements with Vocode
+# Using Docker with Python 3.11 (has tiktoken pre-built wheels)
 
 # Core Framework
 fastapi==0.111.0
@@ -8,13 +8,14 @@ pydantic>=2.0.0
 pydantic-settings>=2.0.0
 gunicorn>=23.0.0
 
-# Vocode Core (Open Source) - pin to avoid tiktoken dependency
-vocode==0.1.111
-
-# Twilio for telephony
+# Vocode Core (Open Source) - THE CORE FOR VOICE CALLS
+vocode==0.1.113
 twilio>=8.0.0
 
-# Speech Recognition (STT) - Deepgram (cloud, no compilation needed)
+# tiktoken - pre-built wheel available for Python 3.11
+tiktoken>=0.5.0
+
+# Speech Recognition (STT)
 deepgram-sdk>=3.0.0
 numpy>=1.24.0,<2.0.0
 
@@ -24,6 +25,9 @@ soundfile==0.12.1
 
 # Azure Text-to-Speech
 azure-cognitiveservices-speech>=1.40.0
+
+# OpenAI for LLM
+openai>=1.0.0
 
 # HTTP Client for Node.js communication
 httpx>=0.27.0
@@ -38,6 +42,3 @@ loguru==0.7.2
 # Production
 websockets>=12.0,<13.0
 aiohttp>=3.9.0
-
-# OpenAI (for LLM)
-openai>=1.0.0

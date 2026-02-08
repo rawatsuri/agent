@@ -1,72 +1,35 @@
-# Voice Bridge - Python Service Dockerfile
-# Self-hosted Vocode telephony server
+# Voice Bridge Dockerfile - Python 3.11 with Vocode
+FROM python:3.11-slim
 
-FROM python:3.11-slim-bookworm as base
+WORKDIR /app
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONFAULTHANDLER=1 \
-    PIP_NO_CACHE_DIR=off \
-    PIP_DISABLE_PIP_VERSION_CHECK=on \
-    PIP_DEFAULT_TIMEOUT=100
-
-# Install system dependencies
+# Install system dependencies for audio + health checks
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libffi-dev \
-    libssl-dev \
-    libasound2 \
-    portaudio19-dev \
-    ffmpeg \
-    git \
+    libsndfile1 \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Set work directory
-WORKDIR /app
+# Upgrade pip for pre-built wheels
+RUN pip install --upgrade pip setuptools wheel
 
-# Copy requirements first for better caching
+# Copy requirements and install
 COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Python dependencies
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
-
-# Production stage
-FROM base as production
-
-# Copy application code
+# Copy application
 COPY . .
 
-# Create non-root user
-RUN groupadd -r voicebridge && useradd -r -g voicebridge voicebridge && \
-    chown -R voicebridge:voicebridge /app
-
-# Switch to non-root user
-USER voicebridge
-
 # Expose port
-EXPOSE 8000
+EXPOSE 10000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:10000/health || exit 1
 
-# Start command
-CMD ["python", "app.py"]
+# Use PORT env var from Render
+ENV PORT=10000
 
-# Development stage
-FROM base as development
-
-# Install development dependencies
-RUN pip install watchdog
-
-# Copy application code
-COPY . .
-
-# Expose port
-EXPOSE 8000
-
-# Start with hot reload
-CMD ["python", "app.py"]
+# Run with gunicorn
+CMD ["sh", "-c", "gunicorn app:app --bind 0.0.0.0:${PORT} --workers 1 --worker-class uvicorn.workers.UvicornWorker --timeout 120"]
