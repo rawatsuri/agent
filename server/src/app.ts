@@ -70,7 +70,7 @@ app.use(requestTracing);
 
 // Routes
 // Health checks first (no authentication needed)
-app.use('/health', healthRoutes);
+app.use('/', healthRoutes);
 
 app.use('/api', apiRoutes);
 app.use('/api/agent', agentRoutes);
@@ -83,6 +83,18 @@ app.get('/', (req, res) => {
     service: 'Omnichannel AI Backend',
     status: 'running',
     version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  });
+});
+
+// Simple health endpoint
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    service: 'omnichannel-ai-api',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
   });
 });
 
