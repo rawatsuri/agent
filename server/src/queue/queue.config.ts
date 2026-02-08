@@ -4,7 +4,7 @@
  */
 
 import { Queue, QueueOptions, WorkerOptions } from 'bullmq';
-import { getRedisClient, getBullRedisClient } from '@/config/redis';
+import { getRedisClient, getBullRedisClient, isRedisEnabled } from '@/config/redis';
 import { logger } from '@/utils/logger';
 
 // Queue names
@@ -23,7 +23,13 @@ const queues: Map<string, Queue> = new Map();
 /**
  * Get or create a queue instance
  */
-export const getQueue = (name: string, options?: Partial<QueueOptions>): Queue => {
+export const getQueue = (name: string, options?: Partial<QueueOptions>): Queue | null => {
+  // Don't create queues if Redis is not available
+  if (!isRedisEnabled() || !process.env.REDIS_URL) {
+    logger.warn({ queueName: name }, 'Redis not available, queue not created');
+    return null;
+  }
+  
   if (!queues.has(name)) {
     const connection = getRedisClient();
     const queue = new Queue(name, {
@@ -59,11 +65,14 @@ export const getQueue = (name: string, options?: Partial<QueueOptions>): Queue =
 /**
  * Get default worker options
  */
-export const getDefaultWorkerOptions = (): WorkerOptions => {
-  const connection = getBullRedisClient();
-  if (!connection) {
-    throw new Error('Redis connection is required for worker options');
+export const getDefaultWorkerOptions = (): WorkerOptions | null => {
+  // Don't create worker options if Redis is not available
+  if (!isRedisEnabled() || !process.env.REDIS_URL) {
+    logger.warn('Redis not available, worker options not created');
+    return null;
   }
+  
+  const connection = getBullRedisClient();
 
   return {
     connection,
@@ -92,6 +101,7 @@ export const closeAllQueues = async (): Promise<void> => {
 };
 
 // Export specific queue getters for convenience
+// These return null if Redis is not available
 export const getEmbeddingQueue = () => getQueue(QUEUE_NAMES.EMBEDDINGS);
 export const getSummaryQueue = () => getQueue(QUEUE_NAMES.SUMMARIES);
 export const getCostReportQueue = () => getQueue(QUEUE_NAMES.COST_REPORTS);

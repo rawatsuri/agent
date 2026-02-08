@@ -3,7 +3,45 @@ import { logger } from '@/utils/logger';
 
 let redis: IORedis | null = null;
 let bullRedis: IORedis | null = null;
-let redisAvailable = true;
+let redisAvailable = false;
+let mockRedisClient: IORedis | null = null;
+
+/**
+ * Create a mock Redis client for when Redis is not available
+ */
+function createMockRedis(): IORedis {
+    if (mockRedisClient) {
+        return mockRedisClient;
+    }
+    
+    const mock = {
+        get: async () => null,
+        set: async () => 'OK',
+        setex: async () => 'OK',
+        del: async () => 0,
+        keys: async () => [],
+        ping: async () => 'PONG',
+        quit: async () => 'OK',
+        on: () => mock,
+        once: () => mock,
+        removeListener: () => mock,
+        disconnect: async () => {},
+        connect: async () => {},
+        status: 'ready',
+    };
+    
+    mockRedisClient = new Proxy(mock, {
+        get(target, prop) {
+            if (prop in target) {
+                return target[prop as keyof typeof target];
+            }
+            // Return no-op function for any other method
+            return () => Promise.resolve(null);
+        }
+    }) as unknown as IORedis;
+    
+    return mockRedisClient;
+}
 
 /**
  * Check if Redis is available and working
@@ -13,53 +51,63 @@ export const isRedisEnabled = (): boolean => {
 };
 
 export const getRedisClient = (): IORedis => {
-    if (!redis) {
-        const redisUrl = process.env.REDIS_URL;
-
-        if (!redisUrl) {
-            logger.warn('REDIS_URL not set');
-            // Return a mock Redis client that logs warnings
-            return createMockRedis() as unknown as IORedis;
-        }
-
-        try {
-            redis = new IORedis(redisUrl, {
-                maxRetriesPerRequest: 3,
-                retryStrategy(times) {
-                    const delay = Math.min(times * 50, 2000);
-                    return delay;
-                },
-                lazyConnect: true,
-                keepAlive: 30000,
-            });
-
-            redis.on('connect', () => {
-                logger.info('Redis connected successfully');
-            });
-
-            redis.on('error', (err) => {
-                if (err.message?.includes('max number of clients reached')) {
-                    logger.error('Redis client limit reached, disabling Redis features');
-                    redisAvailable = false;
-                } else {
-                    logger.error({ err }, 'Redis connection error');
-                }
-            });
-
-            // Graceful shutdown
-            process.on('beforeExit', async () => {
-                if (redis) {
-                    await redis.quit();
-                }
-            });
-        } catch (err) {
-            logger.error({ err }, 'Failed to initialize Redis');
-            redisAvailable = false;
-            return createMockRedis() as unknown as IORedis;
-        }
+    // If REDIS_URL is not set, always return mock
+    const redisUrl = process.env.REDIS_URL;
+    if (!redisUrl) {
+        return createMockRedis();
+    }
+    
+    // If we already have a real connection, return it
+    if (redis) {
+        return redis;
     }
 
-    return redis;
+    try {
+        redis = new IORedis(redisUrl, {
+            maxRetriesPerRequest: 3,
+            retryStrategy(times) {
+                if (times > 3) {
+                    logger.error('Redis connection failed after 3 retries, using mock');
+                    redisAvailable = false;
+                    return null; // Stop retrying
+                }
+                const delay = Math.min(times * 50, 2000);
+                return delay;
+            },
+            lazyConnect: true,
+            keepAlive: 30000,
+        });
+
+        redis.on('connect', () => {
+            logger.info('Redis connected successfully');
+            redisAvailable = true;
+        });
+
+        redis.on('error', (err) => {
+            if (err.message?.includes('max number of clients reached')) {
+                logger.error('Redis client limit reached, disabling Redis features');
+                redisAvailable = false;
+            } else if (err.message?.includes('ECONNREFUSED')) {
+                logger.error('Redis connection refused, using mock client');
+                redisAvailable = false;
+            } else {
+                logger.error({ err }, 'Redis connection error');
+            }
+        });
+
+        // Graceful shutdown
+        process.on('beforeExit', async () => {
+            if (redis && redisAvailable) {
+                await redis.quit();
+            }
+        });
+        
+        return redis;
+    } catch (err) {
+        logger.error({ err }, 'Failed to initialize Redis, using mock');
+        redisAvailable = false;
+        return createMockRedis();
+    }
 };
 
 /**
@@ -67,74 +115,56 @@ export const getRedisClient = (): IORedis => {
  * BullMQ uses blocking operations that don't work with retry logic
  */
 export const getBullRedisClient = (): IORedis => {
-    if (!bullRedis) {
-        const redisUrl = process.env.REDIS_URL;
-
-        if (!redisUrl) {
-            logger.warn('REDIS_URL not set for BullMQ');
-            return createMockRedis() as unknown as IORedis;
-        }
-
-        try {
-            bullRedis = new IORedis(redisUrl, {
-                maxRetriesPerRequest: null,
-                enableReadyCheck: false,
-                lazyConnect: true,
-                retryStrategy(times) {
-                    const delay = Math.min(times * 50, 2000);
-                    return delay;
-                },
-            });
-
-            bullRedis.on('connect', () => {
-                logger.info('BullMQ Redis connected successfully');
-            });
-
-            bullRedis.on('error', (err) => {
-                if (err.message?.includes('max number of clients reached')) {
-                    logger.error('Redis client limit reached, disabling BullMQ features');
-                    redisAvailable = false;
-                } else {
-                    logger.error({ err }, 'BullMQ Redis connection error');
-                }
-            });
-
-            // Graceful shutdown
-            process.on('beforeExit', async () => {
-                if (bullRedis) {
-                    await bullRedis.quit();
-                }
-            });
-        } catch (err) {
-            logger.error({ err }, 'Failed to initialize BullMQ Redis');
-            redisAvailable = false;
-            return createMockRedis() as unknown as IORedis;
-        }
+    // If REDIS_URL is not set, always return mock
+    const redisUrl = process.env.REDIS_URL;
+    if (!redisUrl) {
+        return createMockRedis();
+    }
+    
+    // If we already have a real connection, return it
+    if (bullRedis) {
+        return bullRedis;
     }
 
-    return bullRedis;
-};
+    try {
+        bullRedis = new IORedis(redisUrl, {
+            maxRetriesPerRequest: null,
+            enableReadyCheck: false,
+            lazyConnect: true,
+            retryStrategy(times) {
+                if (times > 3) {
+                    logger.error('BullMQ Redis connection failed, using mock');
+                    return null;
+                }
+                const delay = Math.min(times * 50, 2000);
+                return delay;
+            },
+        });
 
-/**
- * Create a mock Redis client for when Redis is not available
- */
-function createMockRedis() {
-    const mockClient = {
-        get: async () => null,
-        set: async () => 'OK',
-        del: async () => 0,
-        keys: async () => [],
-        ping: async () => 'PONG',
-        quit: async () => 'OK',
-        on: () => mockClient,
-    };
-    
-    return new Proxy(mockClient, {
-        get(target, prop) {
-            if (prop in target) {
-                return target[prop as keyof typeof target];
+        bullRedis.on('connect', () => {
+            logger.info('BullMQ Redis connected successfully');
+        });
+
+        bullRedis.on('error', (err) => {
+            if (err.message?.includes('max number of clients reached')) {
+                logger.error('Redis client limit reached for BullMQ');
+            } else if (err.message?.includes('ECONNREFUSED')) {
+                logger.error('BullMQ Redis connection refused');
+            } else {
+                logger.error({ err }, 'BullMQ Redis connection error');
             }
-            return async () => null;
-        }
-    });
-}
+        });
+
+        // Graceful shutdown
+        process.on('beforeExit', async () => {
+            if (bullRedis && redisAvailable) {
+                await bullRedis.quit();
+            }
+        });
+        
+        return bullRedis;
+    } catch (err) {
+        logger.error({ err }, 'Failed to initialize BullMQ Redis, using mock');
+        return createMockRedis();
+    }
+};
