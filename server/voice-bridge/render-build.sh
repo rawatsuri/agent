@@ -1,19 +1,15 @@
 #!/bin/bash
-
-# Build script for Python Voice Bridge on Render
+# Build script for Voice Bridge on Render
 set -e
 
-echo "🎙️ Starting Python Voice Bridge Build..."
+echo "🚀 Starting Voice Bridge Build..."
 
-cd voice-bridge
+# Upgrade pip first (required for pre-built wheels)
+echo "📦 Upgrading pip..."
+pip install --upgrade pip
 
-# Install system dependencies
-echo "📦 Installing system dependencies..."
-apt-get update -qq
-apt-get install -y -qq ffmpeg portaudio19-dev python3-pyaudio
+# Install dependencies
+echo "📦 Installing dependencies..."
+pip install -r requirements.txt
 
-# Install Python dependencies
-echo "🐍 Installing Python dependencies..."
-pip install --no-cache-dir -r requirements.txt
-
-echo "✅ Python Voice Bridge Build Complete!"
+echo "✅ Voice Bridge Build Complete!"

@@ -1,5 +1,5 @@
 # Voice Bridge - Python Service Requirements
-# Self-hosted Vocode for telephony integration
+# Self-hosted Vocode for telephony integration (Render-compatible)
 
 # Core Framework
 fastapi==0.111.0
@@ -12,16 +12,13 @@ gunicorn>=23.0.0
 vocode==0.1.113
 twilio>=8.0.0
 
-# Speech Recognition (STT)
-faster-whisper>=1.0.0
-openai-whisper>=20230314
+# Speech Recognition (STT) - Using Deepgram instead of Whisper (no Rust needed)
 deepgram-sdk>=3.0.0
 numpy>=1.24.0
 
-# Audio Processing
+# Audio Processing (without pyaudio - not needed for websocket streaming)
 pydub==0.25.1
 soundfile==0.12.1
-pyaudio==0.2.14
 
 # Azure Text-to-Speech
 azure-cognitiveservices-speech>=1.40.0
@@ -38,3 +35,6 @@ loguru==0.7.2
 
 # Production
 websockets>=12.0,<13.0
+
+# Tiktoken pre-built wheel (for OpenAI token counting)
+tiktoken>=0.5.0
