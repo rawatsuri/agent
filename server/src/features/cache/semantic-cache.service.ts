@@ -437,7 +437,7 @@ export class SemanticCacheService {
         sourceChannel: params.channel,
         customerId: params.customerId,
         similarityScore: this.SIMILARITY_THRESHOLD,
-      },
+      } as any,
     });
   }
 
@@ -445,10 +445,7 @@ export class SemanticCacheService {
    * Store in L1 (In-Memory)
    */
   private static storeInL1(key: string, response: string, ttlMinutes: number = this.TTL.L1): void {
-    this.l1Cache.set(key, {
-      response,
-      expiresAt: Date.now() + ttlMinutes * 60 * 1000,
-    });
+    this.l1Cache.set(key, response);
 
     // Simple cleanup of expired entries every 100 inserts
     if (this.l1Cache.size % 100 === 0) {
@@ -460,12 +457,8 @@ export class SemanticCacheService {
    * Cleanup expired L1 cache entries
    */
   private static cleanupL1Cache(): void {
-    const now = Date.now();
-    for (const [key, value] of this.l1Cache.entries()) {
-      if (value.expiresAt < now) {
-        this.l1Cache.delete(key);
-      }
-    }
+    // LRU cache handles cleanup automatically
+    this.l1Cache.purgeStale();
   }
 
   /**

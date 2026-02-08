@@ -67,7 +67,7 @@ router.get(
 
             // Verify customer belongs to business
             const trend = await SentimentAnalyzerService.getCustomerTrend({
-                customerId,
+                customerId: customerId as string,
                 days,
             });
 

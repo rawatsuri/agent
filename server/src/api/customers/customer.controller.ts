@@ -111,10 +111,10 @@ export class CustomerController {
   static async getCustomer(req: Request, res: Response): Promise<void> {
     try {
       const businessId = req.business!.id;
-      const customerId = req.params.id;
+      const customerId = req.params.id as string;
 
       const customer = await db.customer.findFirst({
-        where: { id: customerId, businessId },
+        where: { id: customerId as string, businessId },
         include: {
           _count: {
             select: {
@@ -142,8 +142,8 @@ export class CustomerController {
         firstInteraction: customer.firstInteraction,
         lastInteraction: customer.lastInteraction,
         stats: {
-          conversationCount: customer._count.conversations,
-          memoryCount: customer._count.memories,
+          conversationCount: (customer as any)._count?.conversations || 0,
+          memoryCount: (customer as any)._count?.memories || 0,
         },
       });
     } catch (error) {
@@ -159,11 +159,11 @@ export class CustomerController {
   static async getCustomerConversations(req: Request, res: Response): Promise<void> {
     try {
       const businessId = req.business!.id;
-      const customerId = req.params.id;
+      const customerId = req.params.id as string;
 
       // Verify customer belongs to business
       const customer = await db.customer.findFirst({
-        where: { id: customerId, businessId },
+        where: { id: customerId as string, businessId },
       });
 
       if (!customer) {
@@ -176,7 +176,7 @@ export class CustomerController {
       const skip = (page - 1) * limit;
 
       const conversations = await db.conversation.findMany({
-        where: { customerId, businessId },
+        where: { customerId: customerId as string, businessId },
         skip,
         take: limit,
         orderBy: { updatedAt: 'desc' },
@@ -190,7 +190,7 @@ export class CustomerController {
       });
 
       const total = await db.conversation.count({
-        where: { customerId, businessId },
+        where: { customerId: customerId as string, businessId },
       });
 
       resSuccess(res, {
@@ -201,7 +201,7 @@ export class CustomerController {
           summary: conv.summary,
           startedAt: conv.startedAt,
           lastMessageAt: conv.updatedAt,
-          messageCount: conv._count.messages,
+          messageCount: (conv as any)._count?.messages || 0,
         })),
         pagination: {
           page,
@@ -224,11 +224,11 @@ export class CustomerController {
   static async getCustomerMetrics(req: Request, res: Response): Promise<void> {
     try {
       const businessId = req.business!.id;
-      const customerId = req.params.id;
+      const customerId = req.params.id as string;
 
       // Verify customer belongs to business
       const customer = await db.customer.findFirst({
-        where: { id: customerId, businessId },
+        where: { id: customerId as string, businessId },
       });
 
       if (!customer) {
@@ -239,14 +239,14 @@ export class CustomerController {
       // Get conversation stats
       const conversationStats = await db.conversation.groupBy({
         by: ['channel'],
-        where: { customerId, businessId },
+        where: { customerId: customerId as string, businessId },
         _count: { id: true },
       });
 
       // Get message stats
       const messageStats = await db.message.aggregate({
         where: {
-          conversation: { customerId, businessId },
+          conversation: { customerId: customerId as string, businessId },
         },
         _count: { id: true },
         _avg: { aiCost: true },
@@ -254,7 +254,7 @@ export class CustomerController {
 
       // Get recent activity
       const recentConversations = await db.conversation.findMany({
-        where: { customerId, businessId },
+        where: { customerId: customerId as string, businessId },
         orderBy: { updatedAt: 'desc' },
         take: 5,
         select: {
@@ -268,13 +268,13 @@ export class CustomerController {
       resSuccess(res, {
         customerId,
         overview: {
-          totalConversations: conversationStats.reduce((sum, s) => sum + s._count.id, 0),
-          totalMessages: messageStats._count.id,
-          averageAiCost: messageStats._avg.aiCost ? Number(messageStats._avg.aiCost) : 0,
+          totalConversations: conversationStats.reduce((sum, s) => sum + ((s as any)._count?.id || 0), 0),
+          totalMessages: (messageStats as any)._count?.id || 0,
+          averageAiCost: (messageStats as any)._avg?.aiCost ? Number((messageStats as any)._avg.aiCost) : 0,
         },
         channels: conversationStats.map((stat) => ({
           channel: stat.channel,
-          conversationCount: stat._count.id,
+          conversationCount: (stat as any)._count?.id || 0,
         })),
         recentActivity: recentConversations,
       });
@@ -291,7 +291,7 @@ export class CustomerController {
   static async addTags(req: Request, res: Response): Promise<void> {
     try {
       const businessId = req.business!.id;
-      const customerId = req.params.id;
+      const customerId = req.params.id as string;
 
       const schema = z.object({
         tags: z.array(z.string().min(1).max(50)).min(1),
@@ -305,7 +305,7 @@ export class CustomerController {
 
       // Verify customer belongs to business
       const customer = await db.customer.findFirst({
-        where: { id: customerId, businessId },
+        where: { id: customerId as string, businessId },
       });
 
       if (!customer) {
@@ -318,7 +318,7 @@ export class CustomerController {
       const newTags = [...new Set([...existingTags, ...result.data.tags])];
 
       const updatedCustomer = await db.customer.update({
-        where: { id: customerId },
+        where: { id: customerId as string },
         data: { tags: newTags },
       });
 
@@ -341,7 +341,7 @@ export class CustomerController {
   static async removeTags(req: Request, res: Response): Promise<void> {
     try {
       const businessId = req.business!.id;
-      const customerId = req.params.id;
+      const customerId = req.params.id as string;
 
       const schema = z.object({
         tags: z.array(z.string()).min(1),
@@ -355,7 +355,7 @@ export class CustomerController {
 
       // Verify customer belongs to business
       const customer = await db.customer.findFirst({
-        where: { id: customerId, businessId },
+        where: { id: customerId as string, businessId },
       });
 
       if (!customer) {
@@ -368,7 +368,7 @@ export class CustomerController {
       const newTags = existingTags.filter((tag) => !result.data.tags.includes(tag));
 
       const updatedCustomer = await db.customer.update({
-        where: { id: customerId },
+        where: { id: customerId as string },
         data: { tags: newTags },
       });
 
@@ -391,11 +391,11 @@ export class CustomerController {
   static async verifyCustomer(req: Request, res: Response): Promise<void> {
     try {
       const businessId = req.business!.id;
-      const customerId = req.params.id;
+      const customerId = req.params.id as string;
 
       // Verify customer belongs to business
       const customer = await db.customer.findFirst({
-        where: { id: customerId, businessId },
+        where: { id: customerId as string, businessId },
       });
 
       if (!customer) {
@@ -404,7 +404,7 @@ export class CustomerController {
       }
 
       const updatedCustomer = await db.customer.update({
-        where: { id: customerId },
+        where: { id: customerId as string },
         data: {
           isVerified: true,
           trustScore: Math.max(customer.trustScore, 70),
@@ -438,7 +438,7 @@ export class CustomerController {
   static async blockCustomer(req: Request, res: Response): Promise<void> {
     try {
       const businessId = req.business!.id;
-      const customerId = req.params.id;
+      const customerId = req.params.id as string;
 
       const schema = z.object({
         blocked: z.boolean(),
@@ -453,7 +453,7 @@ export class CustomerController {
 
       // Verify customer belongs to business
       const customer = await db.customer.findFirst({
-        where: { id: customerId, businessId },
+        where: { id: customerId as string, businessId },
       });
 
       if (!customer) {
@@ -464,7 +464,7 @@ export class CustomerController {
       const currentMetadata = (customer.metadata as object) || {};
 
       const updatedCustomer = await db.customer.update({
-        where: { id: customerId },
+        where: { id: customerId as string },
         data: {
           metadata: {
             ...currentMetadata,

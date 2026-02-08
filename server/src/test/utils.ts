@@ -170,15 +170,15 @@ export function createMockResponse() {
   const res: any = {
     statusCode: 200,
     jsonData: null,
-    status: vi.fn(function (code: number) {
+    status: vi.fn(function (this: any, code: number) {
       this.statusCode = code;
       return this;
     }),
-    json: vi.fn(function (data: any) {
+    json: vi.fn(function (this: any, data: any) {
       this.jsonData = data;
       return this;
     }),
-    send: vi.fn(function (data: any) {
+    send: vi.fn(function (this: any, data: any) {
       this.jsonData = data;
       return this;
     }),

@@ -106,10 +106,10 @@ export class ConversationController {
   static async getConversation(req: Request, res: Response): Promise<void> {
     try {
       const businessId = req.business!.id;
-      const conversationId = req.params.id;
+      const conversationId = req.params.id as string;
 
       const conversation = await db.conversation.findFirst({
-        where: { id: conversationId, businessId },
+        where: { id: conversationId as string, businessId },
         include: {
           customer: {
             select: {
@@ -139,10 +139,10 @@ export class ConversationController {
         channel: conversation.channel,
         status: conversation.status,
         summary: conversation.summary,
-        customer: conversation.customer,
+        customer: (conversation as any).customer,
         startedAt: conversation.startedAt,
         updatedAt: conversation.updatedAt,
-        messageCount: conversation._count.messages,
+        messageCount: (conversation as any)._count?.messages || 0,
       });
     } catch (error) {
       logger.error({ error }, 'Error fetching conversation');
@@ -157,11 +157,11 @@ export class ConversationController {
   static async getMessages(req: Request, res: Response): Promise<void> {
     try {
       const businessId = req.business!.id;
-      const conversationId = req.params.id;
+      const conversationId = req.params.id as string;
 
       // Verify conversation belongs to business
       const conversation = await db.conversation.findFirst({
-        where: { id: conversationId, businessId },
+        where: { id: conversationId as string, businessId },
       });
 
       if (!conversation) {
@@ -175,7 +175,7 @@ export class ConversationController {
 
       const [messages, total] = await Promise.all([
         db.message.findMany({
-          where: { conversationId },
+          where: { conversationId: conversationId as string },
           skip,
           take: limit,
           orderBy: { createdAt: 'desc' },
@@ -188,7 +188,7 @@ export class ConversationController {
             createdAt: true,
           },
         }),
-        db.message.count({ where: { conversationId } }),
+        db.message.count({ where: { conversationId: conversationId as string } }),
       ]);
 
       resSuccess(res, {
@@ -217,7 +217,7 @@ export class ConversationController {
   static async closeConversation(req: Request, res: Response): Promise<void> {
     try {
       const businessId = req.business!.id;
-      const conversationId = req.params.id;
+      const conversationId = req.params.id as string;
 
       const schema = z.object({
         summary: z.string().optional(),
@@ -231,7 +231,7 @@ export class ConversationController {
 
       // Verify conversation belongs to business
       const conversation = await db.conversation.findFirst({
-        where: { id: conversationId, businessId },
+        where: { id: conversationId as string, businessId },
       });
 
       if (!conversation) {
@@ -240,7 +240,7 @@ export class ConversationController {
       }
 
       const updatedConversation = await db.conversation.update({
-        where: { id: conversationId },
+        where: { id: conversationId as string },
         data: {
           status: 'CLOSED',
           summary: result.data.summary || conversation.summary,
@@ -285,7 +285,7 @@ export class ConversationController {
 
       // Verify conversation belongs to business
       const conversation = await db.conversation.findFirst({
-        where: { id: conversationId, businessId },
+        where: { id: conversationId as string, businessId },
       });
 
       if (!conversation) {
@@ -294,7 +294,7 @@ export class ConversationController {
       }
 
       const updatedConversation = await db.conversation.update({
-        where: { id: conversationId },
+        where: { id: conversationId as string },
         data: {
           status: 'HUMAN_HANDOFF',
           summary: conversation.summary
@@ -333,11 +333,11 @@ export class ConversationController {
   static async deleteConversation(req: Request, res: Response): Promise<void> {
     try {
       const businessId = req.business!.id;
-      const conversationId = req.params.id;
+      const conversationId = req.params.id as string;
 
       // Verify conversation belongs to business
       const conversation = await db.conversation.findFirst({
-        where: { id: conversationId, businessId },
+        where: { id: conversationId as string, businessId },
       });
 
       if (!conversation) {
@@ -347,7 +347,7 @@ export class ConversationController {
 
       // Delete conversation (cascade will delete messages and memories)
       await db.conversation.delete({
-        where: { id: conversationId },
+        where: { id: conversationId as string },
       });
 
       logger.info({ businessId, conversationId }, 'Conversation deleted');

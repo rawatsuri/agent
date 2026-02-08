@@ -30,7 +30,7 @@ router.get('/funnel', clerkAuth, async (req: Request, res: Response) => {
 
         resSuccess(res, { data: funnel });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -65,7 +65,7 @@ router.post('/funnel/compare', clerkAuth, async (req: Request, res: Response) =>
 
         resSuccess(res, { data: comparison });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -89,7 +89,7 @@ router.get('/cohorts', clerkAuth, async (req: Request, res: Response) => {
 
         resSuccess(res, { data: cohorts });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -107,7 +107,7 @@ router.get('/ltv-distribution', clerkAuth, async (req: Request, res: Response) =
 
         resSuccess(res, { data: distribution });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -145,7 +145,7 @@ router.get('/behavior-patterns', clerkAuth, async (req: Request, res: Response) 
  */
 router.get('/predictions/churn/:customerId', clerkAuth, async (req: Request, res: Response) => {
     try {
-        const { customerId } = req.params;
+        const customerId = req.params.customerId as string;
         const businessId = (req as any).businessId;
 
         const prediction = await PredictionService.predictChurn({
@@ -155,7 +155,7 @@ router.get('/predictions/churn/:customerId', clerkAuth, async (req: Request, res
 
         resSuccess(res, { data: prediction });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -165,7 +165,7 @@ router.get('/predictions/churn/:customerId', clerkAuth, async (req: Request, res
  */
 router.get('/predictions/ltv/:customerId', clerkAuth, async (req: Request, res: Response) => {
     try {
-        const { customerId } = req.params;
+        const customerId = req.params.customerId as string;
         const businessId = (req as any).businessId;
 
         const prediction = await PredictionService.predictLTV({
@@ -175,7 +175,7 @@ router.get('/predictions/ltv/:customerId', clerkAuth, async (req: Request, res: 
 
         resSuccess(res, { data: prediction });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -185,7 +185,7 @@ router.get('/predictions/ltv/:customerId', clerkAuth, async (req: Request, res: 
  */
 router.get('/predictions/next-action/:customerId', clerkAuth, async (req: Request, res: Response) => {
     try {
-        const { customerId } = req.params;
+        const customerId = req.params.customerId as string;
         const businessId = (req as any).businessId;
 
         const action = await PredictionService.getNextBestAction({
@@ -195,7 +195,7 @@ router.get('/predictions/next-action/:customerId', clerkAuth, async (req: Reques
 
         resSuccess(res, { data: action });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -213,7 +213,7 @@ router.get('/predictions/business', clerkAuth, async (req: Request, res: Respons
 
         resSuccess(res, { data: predictions });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -247,7 +247,7 @@ router.get('/dashboard', clerkAuth, async (req: Request, res: Response) => {
             },
         });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 

@@ -23,13 +23,13 @@ export const abuseDetectionMiddleware = async (
     const businessId = req.headers['x-business-id'] as string || req.params.businessId;
     const customerId = req.headers['x-customer-id'] as string || req.params.customerId;
     const message = req.body.message || req.body.content || '';
-    
+
     // Get identifiers
     const phone = req.body.phone || req.headers['x-customer-phone'];
     const email = req.body.email || req.headers['x-customer-email'];
-    const ipAddress = req.headers['x-forwarded-for'] as string || 
-                      req.socket.remoteAddress || 
-                      'unknown';
+    const ipAddress = req.headers['x-forwarded-for'] as string ||
+      req.socket.remoteAddress ||
+      'unknown';
     const fingerprint = req.headers['x-device-fingerprint'] as string;
 
     if (!businessId || !message) {
@@ -39,10 +39,10 @@ export const abuseDetectionMiddleware = async (
 
     // Run abuse detection
     const abuseCheck = await AbuseDetectionService.analyzeMessage({
-      businessId,
-      customerId,
-      phone,
-      email,
+      businessId: businessId as string,
+      customerId: customerId as string | undefined,
+      phone: phone as string | undefined,
+      email: email as string | undefined,
       ipAddress,
       message,
       fingerprint,
@@ -153,7 +153,7 @@ export const customerVerificationMiddleware = async (
 
     // Get customer details
     const customer = await db.customer.findUnique({
-      where: { id: customerId },
+      where: { id: customerId as string },
       select: {
         id: true,
         trustScore: true,
@@ -199,8 +199,8 @@ export const customerVerificationMiddleware = async (
       const messageCount = await db.message.count({
         where: {
           conversation: {
-            customerId,
-            businessId,
+            customerId: customerId as string,
+            businessId: businessId as string,
           },
           createdAt: {
             gte: today,

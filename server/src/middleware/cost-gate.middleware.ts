@@ -24,7 +24,7 @@ export const costGateMiddleware = (estimatedCost: number = 0.001) => {
       }
 
       // Check budget availability
-      const budgetCheck = await BudgetService.hasBudgetAvailable(businessId, estimatedCost);
+      const budgetCheck = await BudgetService.hasBudgetAvailable(businessId as string, estimatedCost);
 
       if (!budgetCheck.allowed) {
         logger.warn(
@@ -51,7 +51,7 @@ export const costGateMiddleware = (estimatedCost: number = 0.001) => {
       }
 
       // Check for budget alerts (async, don't block)
-      BudgetService.checkBudgetAlerts(businessId).catch(() => {});
+      BudgetService.checkBudgetAlerts(businessId as string).catch(() => { });
 
       // Store budget info in request
       req.budgetInfo = {

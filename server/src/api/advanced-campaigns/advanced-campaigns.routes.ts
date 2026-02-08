@@ -46,7 +46,7 @@ router.post('/ab-tests', clerkAuth, async (req: Request, res: Response) => {
         const test = await ABTestingService.createTest({
             businessId,
             ...body,
-        });
+        } as any);
 
         resSuccess(res, { data: test, message: 'A/B test created successfully' });
     } catch (error) {
@@ -83,11 +83,11 @@ router.get('/ab-tests/:id', clerkAuth, async (req: Request, res: Response) => {
         const { id } = req.params;
 
         const test = await db.aBTest.findUnique({
-            where: { id },
+            where: { id: id as string },
         });
 
         if (!test) {
-            return resError(res, new Error('A/B test not found'), 404);
+            return resError(res, 'A/B test not found', 404);
         }
 
         resSuccess(res, { data: test });
@@ -104,7 +104,7 @@ router.post('/ab-tests/:id/start', clerkAuth, async (req: Request, res: Response
     try {
         const { id } = req.params;
 
-        const test = await ABTestingService.startTest(id);
+        const test = await ABTestingService.startTest(id as string);
 
         resSuccess(res, { data: test, message: 'A/B test started' });
     } catch (error) {
@@ -120,7 +120,7 @@ router.get('/ab-tests/:id/results', clerkAuth, async (req: Request, res: Respons
     try {
         const { id } = req.params;
 
-        const results = await ABTestingService.getTestResults(id);
+        const results = await ABTestingService.getTestResults(id as string);
 
         resSuccess(res, { data: results });
     } catch (error) {
@@ -172,7 +172,7 @@ router.get('/recommendations/:customerId', clerkAuth, async (req: Request, res: 
 
         const recommendations = await PersonalizationService.getRecommendations({
             businessId,
-            customerId,
+            customerId: customerId as string,
         });
 
         resSuccess(res, { data: recommendations });

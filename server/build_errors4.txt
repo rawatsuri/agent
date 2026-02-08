@@ -1,0 +1,352 @@
+﻿src/api/admin/admin.controller.ts(87,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/admin/admin.controller.ts(119,9): error TS2322: Type '{ email: string; }' is not assignable to type 'CustomerWhereUniqueInput'.
+  Type '{ email: string; }' is not assignable to type '{ id: string; businessId_phone: CustomerBusinessIdPhoneCompoundUniqueInput; businessId_email: CustomerBusinessIdEmailCompoundUniqueInput; } & { ...; }'.
+    Type '{ email: string; }' is missing the following properties from type '{ id: string; businessId_phone: CustomerBusinessIdPhoneCompoundUniqueInput; businessId_email: CustomerBusinessIdEmailCompoundUniqueInput; }': id, businessId_phone, businessId_email
+src/api/admin/admin.controller.ts(131,9): error TS2322: Type '{ email: string; password: string; name: string | undefined; phone: string | undefined; credits: { create: { totalCredits: number; availableCredits: number; }; }; }' is not assignable to type '(Without<CustomerCreateInput, CustomerUncheckedCreateInput> & CustomerUncheckedCreateInput) | (Without<...> & CustomerCreateInput)'.
+  Type '{ email: string; password: string; name: string | undefined; phone: string | undefined; credits: { create: { totalCredits: number; availableCredits: number; }; }; }' is not assignable to type 'Without<CustomerUncheckedCreateInput, CustomerCreateInput> & CustomerCreateInput'.
+    Property 'business' is missing in type '{ email: string; password: string; name: string | undefined; phone: string | undefined; credits: { create: { totalCredits: number; availableCredits: number; }; }; }' but required in type 'CustomerCreateInput'.
+src/api/admin/admin.controller.ts(170,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/admin/admin.controller.ts(171,9): error TS2322: Type '{ name?: string | undefined; isActive?: boolean | undefined; phone?: string | undefined; aiConfig?: any; enabledChannels?: string[] | undefined; }' is not assignable to type '(Without<CustomerUpdateInput, CustomerUncheckedUpdateInput> & CustomerUncheckedUpdateInput) | (Without<...> & CustomerUpdateInput)'.
+  Type '{ name?: string | undefined; isActive?: boolean | undefined; phone?: string | undefined; aiConfig?: any; enabledChannels?: string[] | undefined; }' is not assignable to type 'Without<CustomerUncheckedUpdateInput, CustomerUpdateInput> & CustomerUpdateInput'.
+    Type '{ name?: string | undefined; isActive?: boolean | undefined; phone?: string | undefined; aiConfig?: any; enabledChannels?: string[] | undefined; }' is not assignable to type 'CustomerUpdateInput'.
+      Types of property 'enabledChannels' are incompatible.
+        Type 'string[] | undefined' is not assignable to type 'Channel[] | CustomerUpdateenabledChannelsInput | undefined'.
+          Type 'string[]' is not assignable to type 'Channel[] | CustomerUpdateenabledChannelsInput | undefined'.
+            Type 'string[]' is not assignable to type 'Channel[]'.
+              Type 'string' is not assignable to type 'Channel'.
+src/api/admin/admin.controller.ts(198,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/admin/admin.controller.ts(217,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/admin/admin.controller.ts(219,11): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/admin/admin.routes.ts(2,29): error TS2307: Cannot find module '@clerk/express' or its corresponding type declarations.
+src/api/advanced-analytics/advanced-analytics.routes.ts(33,23): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'string'.
+src/api/advanced-analytics/advanced-analytics.routes.ts(68,23): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'string'.
+src/api/advanced-analytics/advanced-analytics.routes.ts(92,23): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'string'.
+src/api/advanced-analytics/advanced-analytics.routes.ts(110,23): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'string'.
+src/api/advanced-analytics/advanced-analytics.routes.ts(153,13): error TS2322: Type 'string | string[]' is not assignable to type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/advanced-analytics/advanced-analytics.routes.ts(158,23): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'string'.
+src/api/advanced-analytics/advanced-analytics.routes.ts(173,13): error TS2322: Type 'string | string[]' is not assignable to type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/advanced-analytics/advanced-analytics.routes.ts(178,23): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'string'.
+src/api/advanced-analytics/advanced-analytics.routes.ts(193,13): error TS2322: Type 'string | string[]' is not assignable to type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/advanced-analytics/advanced-analytics.routes.ts(198,23): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'string'.
+src/api/advanced-analytics/advanced-analytics.routes.ts(216,23): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'string'.
+src/api/advanced-analytics/advanced-analytics.routes.ts(250,23): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'string'.
+src/api/advanced-campaigns/advanced-campaigns.routes.ts(46,56): error TS2345: Argument of type '{ name: string; campaignId: string; variants: { name: string; content: string; subject?: string | undefined; weight?: number | undefined; }[]; description?: string | undefined; winnerCriteria?: "OPEN_RATE" | ... 3 more ... | undefined; confidenceLevel?: number | undefined; sampleSize?: number | undefined; businessId...' is not assignable to parameter of type '{ businessId: string; campaignId: string; name: string; description?: string | undefined; variants: { name: string; content: string; subject?: string | undefined; weight?: number | undefined; }[]; winnerCriteria?: WinnerCriteria | undefined; confidenceLevel?: number | undefined; sampleSize?: number | undefined; }'.
+  Types of property 'winnerCriteria' are incompatible.
+    Type '"OPEN_RATE" | "CLICK_RATE" | "REPLY_RATE" | "CONVERSION_RATE" | undefined' is not assignable to type 'WinnerCriteria | undefined'.
+      Type '"OPEN_RATE"' is not assignable to type 'WinnerCriteria | undefined'.
+src/api/advanced-campaigns/advanced-campaigns.routes.ts(86,22): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/advanced-campaigns/advanced-campaigns.routes.ts(90,34): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'string'.
+src/api/advanced-campaigns/advanced-campaigns.routes.ts(107,55): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/advanced-campaigns/advanced-campaigns.routes.ts(123,63): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/advanced-campaigns/advanced-campaigns.routes.ts(175,13): error TS2322: Type 'string | string[]' is not assignable to type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/ai-advanced/ai-advanced.routes.ts(70,17): error TS2322: Type 'string | string[]' is not assignable to type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/analytics/analytics.service.ts(513,7): error TS2322: Type '{ reason: string | null; count: number; }[]' is not assignable to type 'AbuseReasonStat[]'.
+  Type '{ reason: string | null; count: number; }' is not assignable to type 'AbuseReasonStat'.
+    Types of property 'reason' are incompatible.
+      Type 'string | null' is not assignable to type 'string'.
+        Type 'null' is not assignable to type 'string'.
+src/api/auth/customer-auth.controller.ts(32,9): error TS2322: Type '{ email: string; }' is not assignable to type 'CustomerWhereUniqueInput'.
+  Type '{ email: string; }' is not assignable to type '{ id: string; businessId_phone: CustomerBusinessIdPhoneCompoundUniqueInput; businessId_email: CustomerBusinessIdEmailCompoundUniqueInput; } & { ...; }'.
+    Type '{ email: string; }' is missing the following properties from type '{ id: string; businessId_phone: CustomerBusinessIdPhoneCompoundUniqueInput; businessId_email: CustomerBusinessIdEmailCompoundUniqueInput; }': id, businessId_phone, businessId_email
+src/api/auth/customer-auth.controller.ts(44,9): error TS2322: Type '{ email: string; password: string; name: string | undefined; phone: string | undefined; credits: { create: { totalCredits: number; availableCredits: number; }; }; }' is not assignable to type '(Without<CustomerCreateInput, CustomerUncheckedCreateInput> & CustomerUncheckedCreateInput) | (Without<...> & CustomerCreateInput)'.
+  Type '{ email: string; password: string; name: string | undefined; phone: string | undefined; credits: { create: { totalCredits: number; availableCredits: number; }; }; }' is not assignable to type 'Without<CustomerUncheckedCreateInput, CustomerCreateInput> & CustomerCreateInput'.
+    Property 'business' is missing in type '{ email: string; password: string; name: string | undefined; phone: string | undefined; credits: { create: { totalCredits: number; availableCredits: number; }; }; }' but required in type 'CustomerCreateInput'.
+src/api/auth/customer-auth.controller.ts(87,9): error TS2322: Type '{ email: string; }' is not assignable to type 'CustomerWhereUniqueInput'.
+  Type '{ email: string; }' is not assignable to type '{ id: string; businessId_phone: CustomerBusinessIdPhoneCompoundUniqueInput; businessId_email: CustomerBusinessIdEmailCompoundUniqueInput; } & { ...; }'.
+    Type '{ email: string; }' is missing the following properties from type '{ id: string; businessId_phone: CustomerBusinessIdPhoneCompoundUniqueInput; businessId_email: CustomerBusinessIdEmailCompoundUniqueInput; }': id, businessId_phone, businessId_email
+src/api/auth/customer-auth.controller.ts(99,70): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/api/auth/customer-auth.controller.ts(255,67): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/api/business/business.controller.ts(27,15): error TS2353: Object literal may only specify known properties, and 'conversations' does not exist in type 'BusinessCountOutputTypeSelect<DefaultArgs>'.
+src/api/business/business.controller.ts(43,26): error TS2551: Property 'active' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'. Did you mean 'isActive'?
+src/api/business/business.controller.ts(48,35): error TS2339: Property '_count' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'.
+src/api/business/business.controller.ts(49,39): error TS2339: Property '_count' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'.
+src/api/business/business.controller.ts(51,26): error TS2339: Property 'credits' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'.
+src/api/business/business.controller.ts(53,32): error TS2339: Property 'credits' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'.
+src/api/business/business.controller.ts(54,43): error TS2339: Property 'credits' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'.
+src/api/business/business.controller.ts(56,31): error TS2339: Property 'credits' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'.
+src/api/business/business.controller.ts(57,31): error TS2339: Property 'credits' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'.
+src/api/business/business.controller.ts(58,44): error TS2339: Property 'credits' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'.
+src/api/business/business.controller.ts(59,48): error TS2339: Property 'credits' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'.
+src/api/business/business.controller.ts(60,32): error TS2339: Property 'credits' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'.
+src/api/business/business.controller.ts(62,31): error TS2339: Property 'credits' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'.
+src/api/business/business.controller.ts(64,36): error TS2339: Property 'credits' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'.
+src/api/business/business.controller.ts(65,37): error TS2339: Property 'credits' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'.
+src/api/business/business.controller.ts(130,11): error TS2561: Object literal may only specify known properties, but 'config' does not exist in type 'BusinessSelect<DefaultArgs>'. Did you mean to write 'aiConfig'?
+src/api/business/business.controller.ts(140,32): error TS2551: Property 'config' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'. Did you mean 'aiConfig'?
+src/api/business/business.controller.ts(194,11): error TS2561: Object literal may only specify known properties, but 'config' does not exist in type '(Without<BusinessUpdateInput, BusinessUncheckedUpdateInput> & BusinessUncheckedUpdateInput) | (Without<...> & BusinessUpdateInput)'. Did you mean to write 'aiConfig'?
+src/api/business/business.controller.ts(202,26): error TS2551: Property 'config' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'. Did you mean 'aiConfig'?
+src/api/campaigns/campaign.controller.ts(45,17): error TS2353: Object literal may only specify known properties, and 'logs' does not exist in type 'CampaignCountOutputTypeSelect<DefaultArgs>'.
+src/api/campaigns/campaign.controller.ts(138,11): error TS2322: Type '{ type: "BIRTHDAY" | "NO_INTERACTION" | "APPOINTMENT"; days?: number | undefined; } | null' is not assignable to type 'NullableJsonNullValueInput | InputJsonValue | undefined'.
+  Type 'null' is not assignable to type 'NullableJsonNullValueInput | InputJsonValue | undefined'.
+src/api/campaigns/campaign.controller.ts(171,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Campaign"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Campaign"> | undefined'.
+src/api/campaigns/campaign.controller.ts(175,15): error TS2353: Object literal may only specify known properties, and 'logs' does not exist in type 'CampaignCountOutputTypeSelect<DefaultArgs>'.
+src/api/campaigns/campaign.controller.ts(239,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Campaign"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Campaign"> | undefined'.
+src/api/campaigns/campaign.controller.ts(279,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/campaigns/campaign.controller.ts(310,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Campaign"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Campaign"> | undefined'.
+src/api/campaigns/campaign.controller.ts(325,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/campaigns/campaign.controller.ts(350,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Campaign"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Campaign"> | undefined'.
+src/api/campaigns/campaign.controller.ts(379,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/campaigns/campaign.controller.ts(384,49): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/campaigns/campaign.controller.ts(410,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Campaign"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Campaign"> | undefined'.
+src/api/conversations/conversation.controller.ts(112,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+src/api/conversations/conversation.controller.ts(142,32): error TS2551: Property 'customer' does not exist on type '{ businessId: string; customerId: string; id: string; updatedAt: Date; metadata: JsonValue; status: ConversationStatus; startedAt: Date; channel: Channel; summary: string | null; endedAt: Date | null; }'. Did you mean 'customerId'?
+src/api/conversations/conversation.controller.ts(145,36): error TS2339: Property '_count' does not exist on type '{ businessId: string; customerId: string; id: string; updatedAt: Date; metadata: JsonValue; status: ConversationStatus; startedAt: Date; channel: Channel; summary: string | null; endedAt: Date | null; }'.
+src/api/conversations/conversation.controller.ts(164,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+src/api/conversations/conversation.controller.ts(178,20): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Message"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Message"> | undefined'.
+src/api/conversations/conversation.controller.ts(191,37): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Message"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Message"> | undefined'.
+src/api/conversations/conversation.controller.ts(234,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+src/api/conversations/conversation.controller.ts(243,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/conversations/conversation.controller.ts(288,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+src/api/conversations/conversation.controller.ts(297,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/conversations/conversation.controller.ts(340,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+src/api/conversations/conversation.controller.ts(350,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/crm/crm.routes.ts(24,13): error TS2322: Type '{ businessId: any; }' is not assignable to type 'CRMIntegrationWhereUniqueInput'.
+  Type '{ businessId: any; }' is not assignable to type '{ id: string; businessId_provider: CRMIntegrationBusinessIdProviderCompoundUniqueInput; } & { id?: string | undefined; ... 27 more ...; business?: (Without<...> & BusinessWhereInput) | ... 1 more ... | undefined; }'.
+    Type '{ businessId: any; }' is missing the following properties from type '{ id: string; businessId_provider: CRMIntegrationBusinessIdProviderCompoundUniqueInput; }': id, businessId_provider
+src/api/crm/crm.routes.ts(60,36): error TS2693: 'CRMProvider' only refers to a type, but is being used as a value here.
+src/api/crm/crm.routes.ts(77,13): error TS2322: Type '{ businessId: any; }' is not assignable to type 'CRMIntegrationWhereUniqueInput'.
+  Type '{ businessId: any; }' is not assignable to type '{ id: string; businessId_provider: CRMIntegrationBusinessIdProviderCompoundUniqueInput; } & { id?: string | undefined; ... 27 more ...; business?: (Without<...> & BusinessWhereInput) | ... 1 more ... | undefined; }'.
+    Type '{ businessId: any; }' is missing the following properties from type '{ id: string; businessId_provider: CRMIntegrationBusinessIdProviderCompoundUniqueInput; }': id, businessId_provider
+src/api/crm/crm.routes.ts(80,17): error TS2698: Spread types may only be created from object types.
+src/api/crm/crm.routes.ts(81,17): error TS2698: Spread types may only be created from object types.
+src/api/crm/crm.routes.ts(82,17): error TS2698: Spread types may only be created from object types.
+src/api/crm/crm.routes.ts(83,17): error TS2698: Spread types may only be created from object types.
+src/api/crm/crm.routes.ts(84,17): error TS2698: Spread types may only be created from object types.
+src/api/crm/crm.routes.ts(85,17): error TS2698: Spread types may only be created from object types.
+src/api/crm/crm.routes.ts(95,17): error TS2322: Type 'unknown' is not assignable to type 'CRMProvider'.
+src/api/crm/crm.routes.ts(96,17): error TS2322: Type 'unknown' is not assignable to type 'string | null | undefined'.
+src/api/crm/crm.routes.ts(97,17): error TS2322: Type 'unknown' is not assignable to type 'string | null | undefined'.
+src/api/crm/crm.routes.ts(98,17): error TS2322: Type 'unknown' is not assignable to type 'string | null | undefined'.
+src/api/crm/crm.routes.ts(99,17): error TS2322: Type 'unknown' is not assignable to type 'string | null | undefined'.
+src/api/crm/crm.routes.ts(100,17): error TS2322: Type 'unknown' is not assignable to type 'string | null | undefined'.
+src/api/crm/crm.routes.ts(102,17): error TS2322: Type '{}' is not assignable to type 'boolean | undefined'.
+src/api/crm/crm.routes.ts(103,17): error TS2322: Type '{}' is not assignable to type 'boolean | undefined'.
+src/api/crm/crm.routes.ts(104,17): error TS2322: Type '{}' is not assignable to type 'boolean | undefined'.
+src/api/crm/crm.routes.ts(105,17): error TS2322: Type '{}' is not assignable to type 'boolean | undefined'.
+src/api/crm/crm.routes.ts(106,17): error TS2322: Type '{}' is not assignable to type 'boolean | undefined'.
+src/api/crm/crm.routes.ts(120,23): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'string'.
+src/api/crm/crm.routes.ts(136,34): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'string'.
+src/api/crm/crm.routes.ts(147,34): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'string'.
+src/api/crm/crm.routes.ts(153,27): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'string'.
+src/api/crm/crm.routes.ts(179,34): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'string'.
+src/api/crm/crm.routes.ts(188,27): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'string'.
+src/api/crm/crm.routes.ts(214,34): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'string'.
+src/api/crm/crm.routes.ts(223,27): error TS2345: Argument of type 'Error' is not assignable to parameter of type 'string'.
+src/api/crm/crm.routes.ts(273,13): error TS2322: Type '{ businessId: any; }' is not assignable to type 'CRMIntegrationWhereUniqueInput'.
+  Type '{ businessId: any; }' is not assignable to type '{ id: string; businessId_provider: CRMIntegrationBusinessIdProviderCompoundUniqueInput; } & { id?: string | undefined; ... 27 more ...; business?: (Without<...> & BusinessWhereInput) | ... 1 more ... | undefined; }'.
+    Type '{ businessId: any; }' is missing the following properties from type '{ id: string; businessId_provider: CRMIntegrationBusinessIdProviderCompoundUniqueInput; }': id, businessId_provider
+src/api/crm/crm.routes.ts(283,13): error TS2322: Type '{ businessId: any; provider: "CUSTOM"; settings: { webhookUrl: string; events: string[]; }; apiSecret: string | undefined; enabled: true; }' is not assignable to type '(Without<CRMIntegrationCreateInput, CRMIntegrationUncheckedCreateInput> & CRMIntegrationUncheckedCreateInput) | (Without<...> & CRMIntegrationCreateInput)'.
+  Type '{ businessId: any; provider: "CUSTOM"; settings: { webhookUrl: string; events: string[]; }; apiSecret: string | undefined; enabled: true; }' is not assignable to type 'Without<CRMIntegrationUncheckedCreateInput, CRMIntegrationCreateInput> & CRMIntegrationCreateInput'.
+    Type '{ businessId: any; provider: "CUSTOM"; settings: { webhookUrl: string; events: string[]; }; apiSecret: string | undefined; enabled: true; }' is missing the following properties from type 'CRMIntegrationCreateInput': credentials, business
+src/api/customers/customer.controller.ts(117,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Customer"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Customer"> | undefined'.
+src/api/customers/customer.controller.ts(145,39): error TS2339: Property '_count' does not exist on type '{ businessId: string; tags: string[]; name: string | null; email: string | null; id: string; isActive: boolean; createdAt: Date; updatedAt: Date; phone: string | null; aiConfig: JsonValue; ... 8 more ...; lastInteraction: Date; }'.
+src/api/customers/customer.controller.ts(146,33): error TS2339: Property '_count' does not exist on type '{ businessId: string; tags: string[]; name: string | null; email: string | null; id: string; isActive: boolean; createdAt: Date; updatedAt: Date; phone: string | null; aiConfig: JsonValue; ... 8 more ...; lastInteraction: Date; }'.
+src/api/customers/customer.controller.ts(166,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Customer"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Customer"> | undefined'.
+src/api/customers/customer.controller.ts(179,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+src/api/customers/customer.controller.ts(193,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+src/api/customers/customer.controller.ts(204,30): error TS2339: Property '_count' does not exist on type '{ businessId: string; customerId: string; id: string; updatedAt: Date; metadata: JsonValue; status: ConversationStatus; startedAt: Date; channel: Channel; summary: string | null; endedAt: Date | null; }'.
+src/api/customers/customer.controller.ts(231,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Customer"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Customer"> | undefined'.
+src/api/customers/customer.controller.ts(242,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+src/api/customers/customer.controller.ts(249,27): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+src/api/customers/customer.controller.ts(257,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+src/api/customers/customer.controller.ts(271,74): error TS18048: 's._count' is possibly 'undefined'.
+src/api/customers/customer.controller.ts(271,83): error TS2339: Property 'id' does not exist on type 'true | { id?: number | undefined; businessId?: number | undefined; customerId?: number | undefined; channel?: number | undefined; status?: number | undefined; summary?: number | undefined; ... 4 more ...; _all?: number | undefined; }'.
+  Property 'id' does not exist on type 'true'.
+src/api/customers/customer.controller.ts(272,26): error TS18048: 'messageStats._count' is possibly 'undefined'.
+src/api/customers/customer.controller.ts(272,46): error TS2339: Property 'id' does not exist on type 'true | { id?: number | undefined; conversationId?: number | undefined; role?: number | undefined; content?: number | undefined; channel?: number | undefined; status?: number | undefined; ... 5 more ...; _all?: number | undefined; }'.
+  Property 'id' does not exist on type 'true'.
+src/api/customers/customer.controller.ts(273,26): error TS18048: 'messageStats._avg' is possibly 'undefined'.
+src/api/customers/customer.controller.ts(273,60): error TS18048: 'messageStats._avg' is possibly 'undefined'.
+src/api/customers/customer.controller.ts(277,30): error TS18048: 'stat._count' is possibly 'undefined'.
+src/api/customers/customer.controller.ts(277,42): error TS2339: Property 'id' does not exist on type 'true | { id?: number | undefined; businessId?: number | undefined; customerId?: number | undefined; channel?: number | undefined; status?: number | undefined; summary?: number | undefined; ... 4 more ...; _all?: number | undefined; }'.
+  Property 'id' does not exist on type 'true'.
+src/api/customers/customer.controller.ts(308,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Customer"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Customer"> | undefined'.
+src/api/customers/customer.controller.ts(321,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/customers/customer.controller.ts(358,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Customer"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Customer"> | undefined'.
+src/api/customers/customer.controller.ts(371,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/customers/customer.controller.ts(398,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Customer"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Customer"> | undefined'.
+src/api/customers/customer.controller.ts(407,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/api/customers/customer.controller.ts(456,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Customer"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Customer"> | undefined'.
+src/api/customers/customer.controller.ts(467,18): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/features/ai-advanced/ai-advanced.services.ts(230,21): error TS2353: Object literal may only specify known properties, and 'messagePreview' does not exist in type '(Without<SentimentLogCreateInput, SentimentLogUncheckedCreateInput> & SentimentLogUncheckedCreateInput) | (Without<...> & SentimentLogCreateInput)'.
+src/features/ai-advanced/ai-advanced.services.ts(579,21): error TS2322: Type 'string' is not assignable to type 'number'.
+src/features/audit/audit-logger.service.ts(125,17): error TS2322: Type 'import("C:/Users/suraj/Desktop/agent/server/src/features/audit/audit-logger.service").AuditAction' is not assignable to type 'import("C:/Users/suraj/Desktop/agent/server/node_modules/.prisma/client/index").$Enums.AuditAction'.
+src/features/audit/audit-logger.service.ts(288,13): error TS18004: No value exists in scope for the shorthand property 'req'. Either declare one or provide an initializer.
+src/features/cache/semantic-cache.service.ts(429,7): error TS2322: Type '{ businessId: string; embeddingHash: string; queryText: string; queryNormalized: string; responseText: string; expiresAt: Date; sourceChannel: $Enums.Channel | undefined; customerId: string | undefined; similarityScore: number; }' is not assignable to type '(Without<ResponseCacheCreateInput, ResponseCacheUncheckedCreateInput> & ResponseCacheUncheckedCreateInput) | (Without<...> & ResponseCacheCreateInput)'.
+  Type '{ businessId: string; embeddingHash: string; queryText: string; queryNormalized: string; responseText: string; expiresAt: Date; sourceChannel: $Enums.Channel | undefined; customerId: string | undefined; similarityScore: number; }' is not assignable to type 'Without<ResponseCacheUncheckedCreateInput, ResponseCacheCreateInput> & ResponseCacheCreateInput'.
+    Type '{ businessId: string; embeddingHash: string; queryText: string; queryNormalized: string; responseText: string; expiresAt: Date; sourceChannel: $Enums.Channel | undefined; customerId: string | undefined; similarityScore: number; }' is not assignable to type 'Without<ResponseCacheUncheckedCreateInput, ResponseCacheCreateInput>'.
+      Types of property 'customerId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'undefined'.
+          Type 'string' is not assignable to type 'undefined'.
+src/features/cache/semantic-cache.service.ts(449,7): error TS2353: Object literal may only specify known properties, and 'response' does not exist in type 'BackgroundFetch<string>'.
+src/features/cache/semantic-cache.service.ts(465,17): error TS2339: Property 'expiresAt' does not exist on type 'string'.
+src/features/campaigns-advanced/campaigns-advanced.services.ts(283,25): error TS2353: Object literal may only specify known properties, and 'endedAt' does not exist in type '(Without<ABTestUpdateInput, ABTestUncheckedUpdateInput> & ABTestUncheckedUpdateInput) | (Without<...> & ABTestUpdateInput)'.
+src/features/campaigns-advanced/campaigns-advanced.services.ts(508,17): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/features/cost-control/abuse-detection.service.ts(104,37): error TS2345: Argument of type 'Promise<"ALLOW" | "THROTTLE" | "BLOCK" | "BAN">' is not assignable to parameter of type 'string'.
+src/features/cost-control/abuse-detection.service.ts(109,9): error TS2322: Type 'Promise<"ALLOW" | "THROTTLE" | "BLOCK" | "BAN">' is not assignable to type '"ALLOW" | "THROTTLE" | "BLOCK" | "BAN"'.
+src/features/cost-control/abuse-detection.service.ts(332,11): error TS2353: Object literal may only specify known properties, and 'evidence' does not exist in type '(Without<AbuseLogCreateInput, AbuseLogUncheckedCreateInput> & AbuseLogUncheckedCreateInput) | (Without<...> & AbuseLogCreateInput)'.
+src/features/cost-control/abuse-detection.service.ts(435,23): error TS18047: 'log.reason' is possibly 'null'.
+src/features/cost-control/abuse-detection.service.ts(445,7): error TS2322: Type '{ id: string; action: string; reason: string | null; createdAt: Date; }[]' is not assignable to type '{ id: string; action: string; reason: string; createdAt: Date; }[]'.
+  Type '{ id: string; action: string; reason: string | null; createdAt: Date; }' is not assignable to type '{ id: string; action: string; reason: string; createdAt: Date; }'.
+    Types of property 'reason' are incompatible.
+      Type 'string | null' is not assignable to type 'string'.
+        Type 'null' is not assignable to type 'string'.
+src/features/cost-control/cost-tracker.service.ts(33,9): error TS2322: Type '{ businessId: string; customerId: string | undefined; conversationId: string | undefined; service: "OPENAI_GPT" | "OPENAI_EMBEDDING" | "AZURE_TTS"; cost: number; tokensUsed: number | undefined; model: string | undefined; channel: $Enums.Channel | undefined; metadata: Prisma.InputJsonValue; }' is not assignable to type '(Without<CostLogCreateInput, CostLogUncheckedCreateInput> & CostLogUncheckedCreateInput) | (Without<...> & CostLogCreateInput)'.
+  Type '{ businessId: string; customerId: string | undefined; conversationId: string | undefined; service: "OPENAI_GPT" | "OPENAI_EMBEDDING" | "AZURE_TTS"; cost: number; tokensUsed: number | undefined; model: string | undefined; channel: $Enums.Channel | undefined; metadata: Prisma.InputJsonValue; }' is not assignable to type 'Without<CostLogUncheckedCreateInput, CostLogCreateInput> & CostLogCreateInput'.
+    Type '{ businessId: string; customerId: string | undefined; conversationId: string | undefined; service: "OPENAI_GPT" | "OPENAI_EMBEDDING" | "AZURE_TTS"; cost: number; tokensUsed: number | undefined; model: string | undefined; channel: $Enums.Channel | undefined; metadata: Prisma.InputJsonValue; }' is not assignable to type 'Without<CostLogUncheckedCreateInput, CostLogCreateInput>'.
+      Types of property 'customerId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'undefined'.
+          Type 'string' is not assignable to type 'undefined'.
+src/features/cost-control/cost-tracker.service.ts(78,9): error TS2322: Type '{ businessId: string; customerId: string | undefined; conversationId: string | undefined; service: "EXOTEL_SMS" | "EXOTEL_VOICE" | "TWILIO_SMS" | "TWILIO_VOICE" | "SENDGRID_EMAIL" | ... 4 more ... | "ZOHO_API"; cost: number; durationSeconds: number | undefined; channel: $Enums.Channel | undefined; metadata: Prisma.I...' is not assignable to type '(Without<CostLogCreateInput, CostLogUncheckedCreateInput> & CostLogUncheckedCreateInput) | (Without<...> & CostLogCreateInput)'.
+  Type '{ businessId: string; customerId: string | undefined; conversationId: string | undefined; service: "EXOTEL_SMS" | "EXOTEL_VOICE" | "TWILIO_SMS" | "TWILIO_VOICE" | "SENDGRID_EMAIL" | ... 4 more ... | "ZOHO_API"; cost: number; durationSeconds: number | undefined; channel: $Enums.Channel | undefined; metadata: Prisma.I...' is not assignable to type 'Without<CostLogUncheckedCreateInput, CostLogCreateInput> & CostLogCreateInput'.
+    Type '{ businessId: string; customerId: string | undefined; conversationId: string | undefined; service: "EXOTEL_SMS" | "EXOTEL_VOICE" | "TWILIO_SMS" | "TWILIO_VOICE" | "SENDGRID_EMAIL" | ... 4 more ... | "ZOHO_API"; cost: number; durationSeconds: number | undefined; channel: $Enums.Channel | undefined; metadata: Prisma.I...' is not assignable to type 'Without<CostLogUncheckedCreateInput, CostLogCreateInput>'.
+      Types of property 'customerId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'undefined'.
+          Type 'string' is not assignable to type 'undefined'.
+src/features/cost-control/rate-limiter.service.ts(377,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/middleware/abuse-detection.middleware.ts(42,7): error TS2322: Type 'string | string[]' is not assignable to type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/middleware/abuse-detection.middleware.ts(43,7): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/middleware/abuse-detection.middleware.ts(156,16): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/middleware/abuse-detection.middleware.ts(202,13): error TS2322: Type 'string | string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+  Type 'string[]' is not assignable to type 'string | StringFilter<"Conversation"> | undefined'.
+src/middleware/auth.middleware.ts(80,7): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/middleware/auth.middleware.ts(82,7): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/middleware/auth.middleware.ts(125,32): error TS2551: Property 'active' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'. Did you mean 'isActive'?
+src/middleware/auth.middleware.ts(135,7): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/middleware/auth.middleware.ts(137,7): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/middleware/cost-gate.middleware.ts(27,66): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/middleware/cost-gate.middleware.ts(54,39): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/middleware/customer-auth.middleware.ts(63,7): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/middleware/customer-auth.middleware.ts(112,11): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/middleware/rate-limit.middleware.ts(39,51): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/middleware/rate-limit.middleware.ts(50,71): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/middleware/rate-limit.middleware.ts(67,9): error TS2345: Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+  Type 'string[]' is not assignable to type 'string'.
+src/middleware/request-tracing.middleware.ts(65,5): error TS2322: Type 'ReqId | null' is not assignable to type 'string | null'.
+  Type 'number' is not assignable to type 'string'.
+src/queue/workers/cache-warmer.worker.ts(81,61): error TS2561: Object literal may only specify known properties, but 'active' does not exist in type 'BusinessWhereInput'. Did you mean to write 'isActive'?
+src/queue/workers/cache-warmer.worker.ts(82,45): error TS2561: Object literal may only specify known properties, but 'active' does not exist in type 'BusinessWhereInput'. Did you mean to write 'isActive'?
+src/queue/workers/cache-warmer.worker.ts(170,61): error TS2561: Object literal may only specify known properties, but 'active' does not exist in type 'BusinessWhereInput'. Did you mean to write 'isActive'?
+src/queue/workers/cache-warmer.worker.ts(171,45): error TS2561: Object literal may only specify known properties, but 'active' does not exist in type 'BusinessWhereInput'. Did you mean to write 'isActive'?
+src/queue/workers/cost-report.worker.ts(81,61): error TS2561: Object literal may only specify known properties, but 'active' does not exist in type 'BusinessWhereInput'. Did you mean to write 'isActive'?
+src/queue/workers/cost-report.worker.ts(82,45): error TS2561: Object literal may only specify known properties, but 'active' does not exist in type 'BusinessWhereInput'. Did you mean to write 'isActive'?
+src/queue/workers/cost-report.worker.ts(166,61): error TS2561: Object literal may only specify known properties, but 'active' does not exist in type 'BusinessWhereInput'. Did you mean to write 'isActive'?
+src/queue/workers/cost-report.worker.ts(167,45): error TS2561: Object literal may only specify known properties, but 'active' does not exist in type 'BusinessWhereInput'. Did you mean to write 'isActive'?
+src/queue/workers/cost-report.worker.ts(230,61): error TS2561: Object literal may only specify known properties, but 'active' does not exist in type 'BusinessWhereInput'. Did you mean to write 'isActive'?
+src/queue/workers/cost-report.worker.ts(231,45): error TS2561: Object literal may only specify known properties, but 'active' does not exist in type 'BusinessWhereInput'. Did you mean to write 'isActive'?
+src/queue/workers/proactive.worker.ts(89,16): error TS2353: Object literal may only specify known properties, and 'business' does not exist in type 'CampaignInclude<DefaultArgs>'.
+src/queue/workers/proactive.worker.ts(221,42): error TS2339: Property 'checkBudget' does not exist on type 'typeof BudgetService'.
+src/queue/workers/proactive.worker.ts(385,29): error TS2561: Object literal may only specify known properties, but 'config' does not exist in type 'BusinessSelect<DefaultArgs>'. Did you mean to write 'aiConfig'?
+src/routes/admin-channels.routes.ts(16,22): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/routes/admin-channels.routes.ts(24,17): error TS2561: Object literal may only specify known properties, but 'active' does not exist in type 'BusinessSelect<DefaultArgs>'. Did you mean to write 'isActive'?
+src/routes/admin-channels.routes.ts(73,22): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/routes/admin-channels.routes.ts(175,25): error TS2353: Object literal may only specify known properties, and 'conversations' does not exist in type 'BusinessCountOutputTypeSelect<DefaultArgs>'.
+src/routes/admin-channels.routes.ts(198,38): error TS2339: Property 'toUpperCase' does not exist on type 'string | string[]'.
+  Property 'toUpperCase' does not exist on type 'string[]'.
+src/routes/admin-channels.routes.ts(201,22): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/routes/admin-channels.routes.ts(217,22): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/routes/admin-channels.routes.ts(244,38): error TS2339: Property 'toUpperCase' does not exist on type 'string | string[]'.
+  Property 'toUpperCase' does not exist on type 'string[]'.
+src/routes/admin-channels.routes.ts(247,22): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/routes/admin-channels.routes.ts(256,22): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/routes/admin-tiers.routes.ts(17,22): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/routes/admin-tiers.routes.ts(98,22): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/routes/admin-tiers.routes.ts(182,22): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/routes/admin-tiers.routes.ts(257,24): error TS2538: Type 'string[]' cannot be used as an index type.
+src/routes/admin-tiers.routes.ts(269,22): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/routes/admin-tiers.routes.ts(337,22): error TS2322: Type 'string | string[]' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/routes/voice-context.routes.ts(84,17): error TS2561: Object literal may only specify known properties, but 'config' does not exist in type 'BusinessSelect<DefaultArgs>'. Did you mean to write 'aiConfig'?
+src/routes/voice-context.routes.ts(121,35): error TS2551: Property 'config' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'. Did you mean 'aiConfig'?
+src/routes/voice-context.routes.ts(163,36): error TS2304: Cannot find name 'phoneNumber'.
+src/security/security-setup.ts(77,18): error TS2339: Property 'auth' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+src/services/ai-orchestrator/context-builder.service.ts(164,9): error TS2561: Object literal may only specify known properties, but 'config' does not exist in type 'BusinessSelect<DefaultArgs>'. Did you mean to write 'aiConfig'?
+src/services/ai-orchestrator/context-builder.service.ts(178,25): error TS2551: Property 'config' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'. Did you mean 'aiConfig'?
+src/services/ai-orchestrator/prompt-builder.service.ts(45,68): error TS2345: Argument of type 'boolean | undefined' is not assignable to parameter of type 'boolean'.
+  Type 'undefined' is not assignable to type 'boolean'.
+src/services/ai-orchestrator/prompt-builder.service.ts(108,18): error TS2339: Property 'industry' does not exist on type '{ id: string; name: string; config?: Record<string, any> | undefined; }'.
+src/services/ai-orchestrator/prompt-builder.service.ts(109,75): error TS2339: Property 'industry' does not exist on type '{ id: string; name: string; config?: Record<string, any> | undefined; }'.
+src/services/ai-orchestrator/prompt-builder.service.ts(134,16): error TS18048: 'customer.trustScore' is possibly 'undefined'.
+src/services/ai.service.ts(51,25): error TS2561: Object literal may only specify known properties, but 'config' does not exist in type 'BusinessSelect<DefaultArgs>'. Did you mean to write 'aiConfig'?
+src/services/ai.service.ts(85,35): error TS2551: Property 'config' does not exist on type '{ name: string; email: string; apiKey: string | null; id: string; clerkId: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; industry: string | null; phone: string | null; ... 10 more ...; tier: string; }'. Did you mean 'aiConfig'?
+src/test/utils.ts(174,7): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/test/utils.ts(175,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/test/utils.ts(178,7): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/test/utils.ts(179,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/test/utils.ts(182,7): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/test/utils.ts(183,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.

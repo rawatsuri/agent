@@ -77,9 +77,9 @@ export const clerkAuth = async (
     // Attach business to request
     req.business = {
       id: business.id,
-      clerkId: business.clerkId,
-      name: business.name,
-      apiKey: business.apiKey,
+      clerkId: business.clerkId || '',
+      name: business.name || 'Unknown',
+      apiKey: business.apiKey || '',
     };
 
     next();
@@ -122,7 +122,7 @@ export const apiKeyAuth = async (
       where: { apiKey },
     });
 
-    if (!business || !business.active) {
+    if (!business || !business.isActive) {
       return res.status(401).json({
         error: 'Unauthorized',
         message: 'Invalid API key',
@@ -132,9 +132,9 @@ export const apiKeyAuth = async (
     // Attach business to request
     req.business = {
       id: business.id,
-      clerkId: business.clerkId,
-      name: business.name,
-      apiKey: business.apiKey,
+      clerkId: business.clerkId || '',
+      name: business.name || 'Unknown',
+      apiKey: business.apiKey || '',
     };
 
     next();

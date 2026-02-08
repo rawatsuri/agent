@@ -62,5 +62,5 @@ export function requestTracing(req: Request, res: Response, next: NextFunction) 
  * Useful for logging in services
  */
 export function getRequestId(req?: Request): string | null {
-    return req?.id || null;
+    return req?.id ? String(req.id) : null;
 }

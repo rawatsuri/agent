@@ -24,7 +24,6 @@ export class BusinessController {
           _count: {
             select: {
               customers: true,
-              conversations: true,
             },
           },
         },
@@ -40,13 +39,12 @@ export class BusinessController {
         name: business.name,
         email: business.email,
         phone: business.phone,
-        active: business.active,
+        isActive: business.isActive,
         apiKey: business.apiKey,
         createdAt: business.createdAt,
         updatedAt: business.updatedAt,
         stats: {
           customerCount: business._count.customers,
-          conversationCount: business._count.conversations,
         },
         credit: business.credits
           ? {
@@ -127,7 +125,7 @@ export class BusinessController {
         where: { id: businessId },
         select: {
           id: true,
-          config: true,
+          aiConfig: true,
         },
       });
 
@@ -137,7 +135,7 @@ export class BusinessController {
       }
 
       // Parse config or return defaults
-      const config = (business.config as any) || {};
+      const config = (business.aiConfig as any) || {};
 
       resSuccess(res, {
         personality: config.personality || 'professional',
@@ -191,7 +189,7 @@ export class BusinessController {
       const business = await db.business.update({
         where: { id: businessId },
         data: {
-          config: result.data,
+          aiConfig: result.data,
         },
       });
 
@@ -199,7 +197,7 @@ export class BusinessController {
 
       resSuccess(res, {
         message: 'AI configuration updated successfully',
-        config: business.config,
+        aiConfig: business.aiConfig,
       });
     } catch (error) {
       logger.error({ error }, 'Error updating AI config');

@@ -7,6 +7,7 @@ const prisma = new PrismaClient();
 
 // Validation schemas
 const createCustomerSchema = z.object({
+  businessId: z.string(),
   email: z.string().email(),
   password: z.string().min(8),
   name: z.string().optional(),
@@ -19,7 +20,7 @@ const updateCustomerSchema = z.object({
   phone: z.string().optional(),
   isActive: z.boolean().optional(),
   aiConfig: z.any().optional(),
-  enabledChannels: z.array(z.string()).optional(),
+  enabledChannels: z.array(z.enum(['VOICE', 'CHAT', 'EMAIL', 'SMS', 'TELEGRAM', 'WHATSAPP', 'INSTAGRAM'])).optional(),
 });
 
 const addCreditsSchema = z.object({
@@ -36,21 +37,13 @@ export class AdminController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
       const skip = (page - 1) * limit;
-      
+
       const [customers, total] = await Promise.all([
         prisma.customer.findMany({
           skip,
           take: limit,
           orderBy: { createdAt: 'desc' },
           include: {
-            credits: {
-              select: {
-                availableCredits: true,
-                totalCredits: true,
-                monthlyBudget: true,
-                isPaused: true,
-              }
-            },
             _count: {
               select: {
                 conversations: true,
@@ -60,7 +53,7 @@ export class AdminController {
         }),
         prisma.customer.count()
       ]);
-      
+
       res.json({
         customers,
         pagination: {
@@ -75,60 +68,59 @@ export class AdminController {
       res.status(500).json({ error: 'Internal server error' });
     }
   }
-  
+
   /**
    * Get single customer details
    */
   static async getCustomer(req: Request, res: Response) {
     try {
-      const { id } = req.params;
-      
+      const id = req.params.id as string;
+
       const customer = await prisma.customer.findUnique({
         where: { id },
         include: {
-          credits: true,
           _count: {
             select: {
               conversations: true,
-              campaigns: true,
             }
           }
         }
       });
-      
+
       if (!customer) {
         return res.status(404).json({ error: 'Customer not found' });
       }
-      
+
       res.json({ customer });
     } catch (error) {
       console.error('Get customer error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
-  
+
   /**
    * Create new customer (Super Admin only)
    */
   static async createCustomer(req: Request, res: Response) {
     try {
       const validated = createCustomerSchema.parse(req.body);
-      
+
       // Check if customer exists
-      const existing = await prisma.customer.findUnique({
+      const existing = await prisma.customer.findFirst({
         where: { email: validated.email }
       });
-      
+
       if (existing) {
         return res.status(400).json({ error: 'Customer already exists' });
       }
-      
+
       // Hash password
       const hashedPassword = await bcrypt.hash(validated.password, 10);
-      
+
       // Create customer with credits
       const customer = await prisma.customer.create({
         data: {
+          businessId: validated.businessId,
           email: validated.email,
           password: hashedPassword,
           name: validated.name,
@@ -144,7 +136,7 @@ export class AdminController {
           credits: true,
         }
       });
-      
+
       res.status(201).json({
         message: 'Customer created successfully',
         customer,
@@ -157,23 +149,20 @@ export class AdminController {
       res.status(500).json({ error: 'Internal server error' });
     }
   }
-  
+
   /**
    * Update customer
    */
   static async updateCustomer(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const validated = updateCustomerSchema.parse(req.body);
-      
+
       const customer = await prisma.customer.update({
         where: { id },
         data: validated,
-        include: {
-          credits: true,
-        }
       });
-      
+
       res.json({
         message: 'Customer updated successfully',
         customer,
@@ -186,33 +175,33 @@ export class AdminController {
       res.status(500).json({ error: 'Internal server error' });
     }
   }
-  
+
   /**
    * Delete customer
    */
   static async deleteCustomer(req: Request, res: Response) {
     try {
-      const { id } = req.params;
-      
+      const id = req.params.id as string;
+
       await prisma.customer.delete({
         where: { id }
       });
-      
+
       res.json({ message: 'Customer deleted successfully' });
     } catch (error) {
       console.error('Delete customer error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
-  
+
   /**
    * Add credits to customer
    */
   static async addCredits(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const validated = addCreditsSchema.parse(req.body);
-      
+
       const credit = await prisma.customerCredit.upsert({
         where: { customerId: id },
         create: {
@@ -225,7 +214,7 @@ export class AdminController {
           availableCredits: { increment: validated.amount },
         }
       });
-      
+
       res.json({
         message: 'Credits added successfully',
         credit,
@@ -238,7 +227,7 @@ export class AdminController {
       res.status(500).json({ error: 'Internal server error' });
     }
   }
-  
+
   /**
    * Get all costs (admin view)
    */
@@ -248,9 +237,9 @@ export class AdminController {
       const limit = parseInt(req.query.limit as string) || 50;
       const customerId = req.query.customerId as string;
       const skip = (page - 1) * limit;
-      
+
       const where = customerId ? { customerId } : {};
-      
+
       const [costs, total] = await Promise.all([
         prisma.costLog.findMany({
           where,
@@ -269,13 +258,13 @@ export class AdminController {
         }),
         prisma.costLog.count({ where })
       ]);
-      
+
       // Calculate totals
       const totalCost = await prisma.costLog.aggregate({
         where,
         _sum: { cost: true }
       });
-      
+
       res.json({
         costs,
         summary: {
@@ -294,20 +283,20 @@ export class AdminController {
       res.status(500).json({ error: 'Internal server error' });
     }
   }
-  
+
   /**
    * Get dashboard analytics
    */
   static async getAnalytics(req: Request, res: Response) {
     try {
-      const startDate = req.query.startDate 
+      const startDate = req.query.startDate
         ? new Date(req.query.startDate as string)
         : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
-      
+
       const endDate = req.query.endDate
         ? new Date(req.query.endDate as string)
         : new Date();
-      
+
       // Get stats
       const [
         totalCustomers,
@@ -329,21 +318,21 @@ export class AdminController {
           _sum: { cost: true }
         }),
       ]);
-      
+
       // Cost by service
       const costByService = await prisma.costLog.groupBy({
         by: ['service'],
         where: { createdAt: { gte: startDate, lte: endDate } },
         _sum: { cost: true },
       });
-      
+
       // Cost by channel
       const costByChannel = await prisma.costLog.groupBy({
         by: ['channel'],
         where: { createdAt: { gte: startDate, lte: endDate } },
         _sum: { cost: true },
       });
-      
+
       res.json({
         overview: {
           totalCustomers,
@@ -364,7 +353,7 @@ export class AdminController {
       res.status(500).json({ error: 'Internal server error' });
     }
   }
-  
+
   /**
    * Get/Update global AI configuration
    */

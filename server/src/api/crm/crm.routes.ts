@@ -20,7 +20,7 @@ router.get('/config', clerkAuth, async (req: Request, res: Response) => {
     try {
         const businessId = (req as any).businessId;
 
-        const config = await db.cRMIntegration.findUnique({
+        const config = await db.cRMIntegration.findFirst({
             where: { businessId },
         });
 
@@ -57,7 +57,7 @@ router.post('/config', clerkAuth, async (req: Request, res: Response) => {
         const businessId = (req as any).businessId;
 
         const schema = z.object({
-            provider: z.nativeEnum(CRMProvider),
+            provider: z.enum(['SALESFORCE', 'HUBSPOT', 'ZOHO', 'FRESHSALES', 'CUSTOM']),
             apiKey: z.string().optional(),
             apiSecret: z.string().optional(),
             accessToken: z.string().optional(),
@@ -74,7 +74,12 @@ router.post('/config', clerkAuth, async (req: Request, res: Response) => {
         const body = schema.parse(req.body);
 
         const config = await db.cRMIntegration.upsert({
-            where: { businessId },
+            where: {
+                businessId_provider: {
+                    businessId,
+                    provider: body.provider,
+                }
+            },
             update: {
                 provider: body.provider,
                 ...(body.apiKey && { apiKey: body.apiKey }),
@@ -104,7 +109,7 @@ router.post('/config', clerkAuth, async (req: Request, res: Response) => {
                 syncLeads: body.syncLeads ?? true,
                 syncOpportunities: body.syncOpportunities ?? true,
                 syncCases: body.syncCases ?? false,
-            },
+            } as any,
         });
 
         logger.info({ businessId, provider: body.provider }, 'CRM configured');
@@ -117,7 +122,7 @@ router.post('/config', clerkAuth, async (req: Request, res: Response) => {
             },
         });
     } catch (error) {
-        resError(res, error as Error, 500);
+        resError(res, (error as Error).message, 500);
     }
 });
 
@@ -133,7 +138,7 @@ router.post('/sync/:customerId', clerkAuth, async (req: Request, res: Response) 
 
         const config = await CRMFactory.getConfig(businessId);
         if (!config) {
-            return resError(res, new Error('CRM not configured'), 400);
+            return resError(res, 'CRM not configured', 400);
         }
 
         const connector = CRMFactory.getConnector(config);
@@ -144,13 +149,13 @@ router.post('/sync/:customerId', clerkAuth, async (req: Request, res: Response) 
         } else if (entityType === 'lead') {
             result = await connector.syncLead(customerId as string);
         } else {
-            return resError(res, new Error('Invalid entity type'), 400);
+            return resError(res, 'Invalid entity type', 400);
         }
 
         if (result.success) {
             resSuccess(res, { data: result });
         } else {
-            resError(res, new Error(result.message), 400);
+            resError(res, result.message || 'Sync failed', 400);
         }
     } catch (error) {
         resError(res, (error as Error).message, 500);
@@ -176,7 +181,7 @@ router.post('/opportunities', clerkAuth, async (req: Request, res: Response) => 
 
         const config = await CRMFactory.getConfig(businessId);
         if (!config) {
-            return resError(res, new Error('CRM not configured'), 400);
+            return resError(res, 'CRM not configured', 400);
         }
 
         const connector = CRMFactory.getConnector(config);
@@ -185,7 +190,7 @@ router.post('/opportunities', clerkAuth, async (req: Request, res: Response) => 
         if (result.success) {
             resSuccess(res, { data: result });
         } else {
-            resError(res, new Error(result.message), 400);
+            resError(res, result.message || 'Opportunity creation failed', 400);
         }
     } catch (error) {
         resError(res, (error as Error).message, 500);
@@ -211,7 +216,7 @@ router.post('/cases', clerkAuth, async (req: Request, res: Response) => {
 
         const config = await CRMFactory.getConfig(businessId);
         if (!config) {
-            return resError(res, new Error('CRM not configured'), 400);
+            return resError(res, 'CRM not configured', 400);
         }
 
         const connector = CRMFactory.getConnector(config);
@@ -220,7 +225,7 @@ router.post('/cases', clerkAuth, async (req: Request, res: Response) => {
         if (result.success) {
             resSuccess(res, { data: result });
         } else {
-            resError(res, new Error(result.message), 400);
+            resError(res, result.message || 'Case creation failed', 400);
         }
     } catch (error) {
         resError(res, (error as Error).message, 500);
@@ -270,7 +275,12 @@ router.post('/webhooks', clerkAuth, async (req: Request, res: Response) => {
         const body = schema.parse(req.body);
 
         await db.cRMIntegration.upsert({
-            where: { businessId },
+            where: {
+                businessId_provider: {
+                    businessId,
+                    provider: 'CUSTOM',
+                }
+            },
             update: {
                 provider: 'CUSTOM',
                 settings: {
@@ -289,7 +299,7 @@ router.post('/webhooks', clerkAuth, async (req: Request, res: Response) => {
                 },
                 apiSecret: body.secret,
                 enabled: true,
-            },
+            } as any,
         });
 
         resSuccess(res, { data: { message: 'Webhook configured successfully' } });

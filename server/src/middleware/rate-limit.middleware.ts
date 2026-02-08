@@ -36,7 +36,7 @@ export const rateLimitMiddleware = async (
     }
 
     // Step 1: Check if business is paused
-    const isPaused = await BudgetService.isPaused(businessId);
+    const isPaused = await BudgetService.isPaused(businessId as string);
     if (isPaused) {
       res.status(403).json({
         success: false,
@@ -47,7 +47,7 @@ export const rateLimitMiddleware = async (
     }
 
     // Step 2: Check business monthly quota
-    const businessQuota = await RateLimiterService.checkBusinessQuota(businessId, type);
+    const businessQuota = await RateLimiterService.checkBusinessQuota(businessId as string, type);
     if (!businessQuota.allowed) {
       res.status(429).json({
         success: false,
@@ -64,8 +64,8 @@ export const rateLimitMiddleware = async (
     // Step 3: Check customer limits (if customerId provided)
     if (customerId) {
       const customerLimit = await RateLimiterService.checkCustomerLimit(
-        customerId,
-        businessId,
+        customerId as string,
+        businessId as string,
         type,
         channel
       );

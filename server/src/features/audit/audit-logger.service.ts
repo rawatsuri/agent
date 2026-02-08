@@ -122,7 +122,7 @@ export class AuditLoggerService {
                 businessId: params.businessId,
                 customerId: params.customerId,
                 userId: params.userId,
-                action: params.action,
+                action: params.action as any,
                 severity,
                 resource: params.resource,
                 resourceId: params.resourceId,
@@ -137,7 +137,7 @@ export class AuditLoggerService {
                     }),
                     ...params.metadata,
                 },
-            },
+            } as any,
         });
 
         // Log to system logger for real-time monitoring
@@ -285,7 +285,7 @@ export class AuditLoggerService {
             resource: 'data_export',
             resourceId: `${params.businessId}-${Date.now()}`,
             description: `Data export: ${params.dataType} (${params.recordCount} records)`,
-            req,
+            req: params.req,
             metadata: {
                 dataType: params.dataType,
                 recordCount: params.recordCount,

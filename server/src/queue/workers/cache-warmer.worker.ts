@@ -19,7 +19,7 @@ import { Channel } from '@prisma/client';
  */
 export const startCacheWarmerWorker = (): Worker => {
   const options = getDefaultWorkerOptions();
-  
+
   const worker = new Worker(
     QUEUE_NAMES.CACHE_WARMER,
     async (job: Job) => {
@@ -78,8 +78,8 @@ async function processWarmCommonQueries(jobId: string, data: CacheWarmerJobData)
 
   // Get businesses to warm
   const businesses = businessId
-    ? await db.business.findMany({ where: { id: businessId, active: true } })
-    : await db.business.findMany({ where: { active: true } });
+    ? await db.business.findMany({ where: { id: businessId, isActive: true } })
+    : await db.business.findMany({ where: { isActive: true } });
 
   logger.info({ jobId, businessCount: businesses.length, priority }, 'Warming common queries');
 
@@ -167,8 +167,8 @@ async function processWarmFAQs(jobId: string, data: CacheWarmerJobData): Promise
   const { businessId } = data;
 
   const businesses = businessId
-    ? await db.business.findMany({ where: { id: businessId, active: true } })
-    : await db.business.findMany({ where: { active: true } });
+    ? await db.business.findMany({ where: { id: businessId, isActive: true } })
+    : await db.business.findMany({ where: { isActive: true } });
 
   logger.info({ jobId, businessCount: businesses.length }, 'Warming FAQ cache');
 

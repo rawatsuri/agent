@@ -42,7 +42,7 @@ export class PromptBuilderService {
     try {
       const systemPrompt = this.buildSystemPrompt(context, channel);
       const userPrompt = this.buildUserPrompt(userMessage, context);
-      const parameters = this.getModelParameters(channel, urgency, context.customer.isVerified);
+      const parameters = this.getModelParameters(channel, urgency, context.customer.isVerified ?? false);
 
       logger.debug(
         {
@@ -105,8 +105,8 @@ export class PromptBuilderService {
     const { business } = context;
     let identity = `You are an AI assistant for ${business.name}.`;
 
-    if (business.industry) {
-      identity += ` You specialize in helping customers in the ${business.industry} industry.`;
+    if ((business as any).industry) {
+      identity += ` You specialize in helping customers in the ${(business as any).industry} industry.`;
     }
 
     // Add custom personality if configured
@@ -131,7 +131,7 @@ export class PromptBuilderService {
     // Trust level indication
     if (!customer.isVerified) {
       parts.push('This is a new customer who has not been verified yet. Be helpful but cautious about sensitive operations or sharing confidential information.');
-    } else if (customer.trustScore >= 80) {
+    } else if ((customer.trustScore ?? 0) >= 80) {
       parts.push('This is a trusted, long-term customer.');
     }
 

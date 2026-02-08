@@ -19,11 +19,7 @@
  *    - Cohort Analysis: Customer retention and LTV tracking
  *    - Predictions: Churn prediction, LTV forecasting, next best action
  * 
- * 4. White-Label Customization
- *    - Branding: Colors, logos, custom CSS, email templates
- *    - Custom Domains: Domain verification, SSL management
- * 
- * 5. Advanced Campaigns
+ * 4. Advanced Campaigns
  *    - A/B Testing: Statistical testing with winner selection
  *    - Personalization: Dynamic content and recommendations
  * 
@@ -37,13 +33,11 @@
 export * from './ai-advanced';
 
 // CRM Integrations
-export * from './integrations';
+export * from '../integrations';
 
 // Advanced Analytics
 export * from '../analytics/advanced';
 
-// White-Label
-export * from './white-label';
 
 // Advanced Campaigns
 export * from './campaigns-advanced';

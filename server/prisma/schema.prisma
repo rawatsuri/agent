@@ -1,6 +1,6 @@
 // Omnichannel AI Platform - Prisma Schema
-// Direct B2C Architecture (No White-Label)
-// Phase 1: Foundation & Cost Control
+// Super Admin → Business → Customer Architecture
+// With Vocode + Exotel (India) + Twilio (International) Telephony
 
 generator client {
   provider        = "prisma-client-js"
@@ -33,20 +33,22 @@ model Admin {
 }
 
 // ============================================
-// CUSTOMER (Main User Entity)
+// BUSINESS (Client Entity - Managed by Super Admin)
 // ============================================
 
-model Customer {
-  id         String   @id @default(uuid())
-  email      String   @unique
-  password   String   // Hashed password
-  name       String?
-  phone      String?  @unique // Primary identifier for voice/SMS
+model Business {
+  id          String   @id @default(uuid())
+  clerkId     String?  @unique // Optional Clerk user ID for business owner
+  apiKey      String?  @unique // API key for programmatic access
+  name        String
+  industry    String?
+  email       String   @unique
+  phone       String?
   
-  // AI Configuration (Per Customer)
-  aiConfig   Json?    // Personality, tone, custom prompts
+  // AI Configuration (Per Business)
+  aiConfig    Json?    // Personality, tone, custom prompts
   
-  // Channel Enablement (All customers get all channels by default)
+  // Channel Enablement
   enabledChannels Channel[] @default([VOICE, CHAT, EMAIL, SMS, TELEGRAM, WHATSAPP, INSTAGRAM])
   
   // Service Configuration
@@ -56,16 +58,13 @@ model Customer {
   defaultLanguage    String   @default("en")
   supportedLanguages String[] @default(["en"])
   
-  // Metadata
-  metadata     Json?    // Custom fields
-  preferences  Json?    // Language, timezone, notifications
-  tags         String[] // For segmentation
+  // Voice Provider Configuration
+  voiceProvider      String?  // "twilio" or "exotel"
+  twilioPhoneNumber  String?
+  exotelPhoneNumber  String?
   
-  // Trust & Verification
-  trustScore       Int       @default(50) // 0-100
-  isVerified       Boolean   @default(false)
-  firstInteraction DateTime  @default(now())
-  lastInteraction  DateTime  @default(now())
+  // Subscription & Tier
+  tier        String   @default("STARTER") // STARTER, GROWTH, ENTERPRISE
   
   // Status
   isActive    Boolean  @default(true)
@@ -73,27 +72,30 @@ model Customer {
   updatedAt   DateTime @updatedAt
 
   // Relationships
-  conversations   Conversation[]
-  memories        Memory[]
-  credits         CustomerCredit?
-  costLogs        CostLog[]
-  campaigns       Campaign[]
-  responseCaches  ResponseCache[]
-  faqs            CustomerFAQ[]
+  customers        Customer[]
+  credits          BusinessCredit?
+  faqs             BusinessFAQ[]
+  crmIntegrations  CRMIntegration[]
+  rateLimitConfigs RateLimitConfig[]
+  abTests          ABTest[]
 
   @@index([email])
-  @@index([phone])
   @@index([isActive])
-  @@map("customers")
+  @@index([clerkId])
+  @@index([apiKey])
+  @@map("businesses")
 }
 
 // ============================================
-// CUSTOMER CREDITS & BUDGET
+// BUSINESS CREDITS & BUDGET
 // ============================================
 
-model CustomerCredit {
+model BusinessCredit {
   id                  String   @id @default(uuid())
-  customerId          String   @unique
+  businessId          String   @unique
+  
+  // Plan Type
+  planType            String   @default("STARTER") // STARTER, GROWTH, ENTERPRISE
   
   // Credit System
   totalCredits        Decimal  @default(0) @db.Decimal(12, 2)
@@ -109,6 +111,88 @@ model CustomerCredit {
   alertThresholds     Int[]    @default([75, 90])
   lastAlertAt75       DateTime?
   lastAlertAt90       DateTime?
+  
+  // Controls
+  isPaused            Boolean  @default(false)
+  pausedAt            DateTime?
+  pauseReason         String?
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  
+  @@map("business_credits")
+}
+
+// ============================================
+// CUSTOMER (End User Entity)
+// ============================================
+
+model Customer {
+  id         String   @id @default(uuid())
+  businessId String
+  email      String?
+  password   String?  // Hashed password for customer auth
+  phone      String?  // Primary identifier for voice/SMS
+  name       String?
+  
+  // AI Configuration (Per Customer overrides)
+  aiConfig        Json?
+  enabledChannels Channel[] @default([VOICE, CHAT, EMAIL, SMS, TELEGRAM, WHATSAPP, INSTAGRAM])
+  
+  // Metadata
+  metadata     Json?    // Custom fields
+  preferences  Json?    // Language, timezone, notifications
+  tags         String[] // For segmentation
+  
+  // Trust & Verification
+  trustScore       Int       @default(50) // 0-100
+  isVerified       Boolean   @default(false)
+  isBlocked        Boolean   @default(false)
+  firstInteraction DateTime  @default(now())
+  lastInteraction  DateTime  @default(now())
+  
+  // Status
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  business        Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  conversations   Conversation[]
+  memories        Memory[]
+  costLogs        CostLog[]
+  campaigns       Campaign[]
+  responseCaches  ResponseCache[]
+  credits         CustomerCredit?
+
+  @@unique([businessId, phone])
+  @@unique([businessId, email])
+  @@index([businessId])
+  @@index([phone])
+  @@index([email])
+  @@index([isActive])
+  @@map("customers")
+}
+
+// ============================================
+// CUSTOMER CREDITS (Optional - for customer-level billing)
+// ============================================
+
+model CustomerCredit {
+  id                  String   @id @default(uuid())
+  customerId          String   @unique
+  
+  // Credit System
+  totalCredits        Decimal  @default(0) @db.Decimal(12, 2)
+  usedCredits         Decimal  @default(0) @db.Decimal(12, 2)
+  availableCredits    Decimal  @default(0) @db.Decimal(12, 2)
+  
+  // Monthly Budget
+  monthlyBudget       Decimal  @default(100) @db.Decimal(10, 2)
+  currentMonthSpend   Decimal  @default(0) @db.Decimal(10, 2)
+  lastResetAt         DateTime @default(now())
   
   // Controls
   isPaused            Boolean  @default(false)
@@ -141,10 +225,13 @@ enum ConversationStatus {
   ACTIVE
   CLOSED
   TRANSFERRED
+  HUMAN_HANDOFF
+  COMPLETED
 }
 
 model Conversation {
   id         String             @id @default(uuid())
+  businessId String
   customerId String
   channel    Channel
   status     ConversationStatus @default(ACTIVE)
@@ -160,6 +247,7 @@ model Conversation {
   callRecordings CallRecording[]
   costLogs       CostLog[]
 
+  @@index([businessId])
   @@index([customerId])
   @@index([channel])
   @@index([status])
@@ -250,6 +338,7 @@ model CallRecording {
 
 model CostLog {
   id               String   @id @default(uuid())
+  businessId       String
   customerId       String
   conversationId   String?
   
@@ -271,8 +360,9 @@ model CostLog {
   customer       Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
   conversation   Conversation?  @relation(fields: [conversationId], references: [id], onDelete: SetNull)
   
+  @@index([businessId, createdAt])
   @@index([customerId, createdAt])
-  @@index([customerId, service])
+  @@index([businessId, service])
   @@index([service, createdAt])
   @@index([createdAt])
   @@map("cost_logs")
@@ -284,6 +374,7 @@ model CostLog {
 
 model ResponseCache {
   id              String   @id @default(uuid())
+  businessId      String
   customerId      String
   
   // Embedding Identification
@@ -291,6 +382,7 @@ model ResponseCache {
   queryVector     Unsupported("vector(1536)")?
   
   // Cached Content
+  query           String   @db.Text
   queryText       String   @db.Text
   queryNormalized String   @db.Text
   responseText    String   @db.Text
@@ -314,16 +406,17 @@ model ResponseCache {
 
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   
-  @@unique([customerId, embeddingHash])
+  @@unique([businessId, embeddingHash])
+  @@index([businessId, expiresAt])
+  @@index([businessId, isFAQ])
   @@index([customerId, expiresAt])
-  @@index([customerId, isFAQ])
   @@index([lastAccessedAt])
   @@map("response_caches")
 }
 
-model CustomerFAQ {
+model BusinessFAQ {
   id              String   @id @default(uuid())
-  customerId      String
+  businessId      String
   
   // Content
   question        String   @db.Text
@@ -350,12 +443,12 @@ model CustomerFAQ {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   
-  @@index([customerId, category])
-  @@index([customerId, isActive])
-  @@index([customerId, priority])
-  @@map("customer_faqs")
+  @@index([businessId, category])
+  @@index([businessId, isActive])
+  @@index([businessId, priority])
+  @@map("business_faqs")
 }
 
 // ============================================
@@ -363,6 +456,8 @@ model CustomerFAQ {
 // ============================================
 
 enum CampaignType {
+  SCHEDULED
+  EVENT_BASED
   REMINDER
   PROMOTION
   FOLLOW_UP
@@ -389,6 +484,7 @@ enum CampaignStatus {
 
 model Campaign {
   id           String   @id @default(uuid())
+  businessId   String
   customerId   String
   
   // Basic Info
@@ -433,12 +529,256 @@ model Campaign {
   updatedAt      DateTime @updatedAt
 
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  abTests  ABTest[]
   
+  @@index([businessId, status])
+  @@index([businessId, type])
   @@index([customerId, status])
-  @@index([customerId, type])
   @@index([scheduledAt])
   @@index([status, scheduledAt])
   @@map("campaigns")
+}
+
+// ============================================
+// A/B TESTING
+// ============================================
+
+enum WinnerCriteria {
+  OPEN_RATE
+  CLICK_RATE
+  REPLY_RATE
+  CONVERSION_RATE
+}
+
+model ABTest {
+  id              String   @id @default(uuid())
+  businessId      String
+  campaignId      String
+  
+  // Test Configuration
+  name            String
+  description     String?
+  variants        Json     // Array of variant objects
+  winnerCriteria  WinnerCriteria @default(OPEN_RATE)
+  confidenceLevel Decimal  @default(0.95)
+  sampleSize      Int?
+  
+  // Results
+  winner          String?
+  winningVariant  String?
+  results         Json?
+  
+  // Status
+  status          String   @default("DRAFT") // DRAFT, RUNNING, COMPLETED
+  startedAt       DateTime?
+  completedAt     DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  
+  @@index([businessId])
+  @@index([campaignId])
+  @@map("ab_tests")
+}
+
+// ============================================
+// CRM INTEGRATION
+// ============================================
+
+enum CRMProvider {
+  SALESFORCE
+  HUBSPOT
+  ZOHO
+  FRESHSALES
+  PIPEDRIVE
+  CUSTOM
+}
+
+model CRMIntegration {
+  id              String      @id @default(uuid())
+  businessId      String
+  provider        CRMProvider
+  
+  // Status & Configuration
+  enabled         Boolean     @default(true)
+  isActive        Boolean     @default(true)
+  autoSync        Boolean     @default(true)
+  
+  // Credentials (Encrypted) - Stored in JSON for flexibility
+  credentials     Json
+  apiKey          String?
+  apiSecret       String?
+  accessToken     String?
+  refreshToken    String?
+  instanceUrl     String?
+  
+  // Sync Settings
+  syncEnabled     Boolean     @default(true)
+  syncContacts    Boolean     @default(true)
+  syncLeads       Boolean     @default(true)
+  syncOpportunities Boolean   @default(false)
+  syncCases       Boolean     @default(false)
+  fieldMapping    Json?
+  settings        Json?
+  
+  // Status
+  lastSyncAt      DateTime?
+  lastSyncError   String?
+  syncError       String?
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  
+  @@unique([businessId, provider])
+  @@index([businessId])
+  @@map("crm_integrations")
+}
+
+// ============================================
+// RATE LIMITING & ABUSE DETECTION
+// ============================================
+
+model RateLimitConfig {
+  id              String   @id @default(uuid())
+  businessId      String
+  
+  // Basic Limits
+  requestsPerMinute   Int  @default(60)
+  requestsPerHour     Int  @default(1000)
+  requestsPerDay      Int  @default(10000)
+  
+  // Message Limits
+  maxMessagesPerDay   Int  @default(1000)
+  maxMessagesPerHour  Int  @default(100)
+  messageCooldownSeconds Int @default(0)
+  monthlyMessageQuota Int  @default(10000)
+  
+  // Call Limits
+  maxCallsPerDay      Int  @default(100)
+  maxCallsPerHour     Int  @default(20)
+  monthlyCallQuota    Int  @default(500)
+  monthlySMQuota      Int  @default(1000)
+  
+  // Abuse Detection
+  autoBlockAfterAbuseCount Int @default(5)
+  requireVerification Boolean @default(false)
+  
+  // Custom Rules
+  customRules     Json?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  
+  @@unique([businessId])
+  @@map("rate_limit_configs")
+}
+
+model RateLimitHit {
+  id          String   @id @default(uuid())
+  businessId  String
+  customerId  String?
+  
+  // Hit Details
+  endpoint    String
+  hitType     String   // WARNING, BLOCKED
+  requestCount Int
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([businessId, createdAt])
+  @@index([customerId, createdAt])
+  @@map("rate_limit_hits")
+}
+
+model AbuseLog {
+  id          String   @id @default(uuid())
+  businessId  String
+  customerId  String?
+  
+  // Contact Info (for pattern detection)
+  phone       String?
+  email       String?
+  ipAddress   String?
+  fingerprint String?
+  
+  // Abuse Details
+  abuseType   String   // SPAM, RATE_LIMIT, SUSPICIOUS
+  severity    String   // LOW, MEDIUM, HIGH, CRITICAL
+  description String   @db.Text
+  reason      String?  // Human-readable reason
+  
+  // Action Taken
+  action      String   // WARN, THROTTLE, BLOCK, BAN
+  
+  // Metadata
+  metadata    Json?
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([businessId, createdAt])
+  @@index([customerId, createdAt])
+  @@index([abuseType, createdAt])
+  @@index([ipAddress])
+  @@map("abuse_logs")
+}
+
+// ============================================
+// AI ANALYTICS (Sentiment & Intent)
+// ============================================
+
+model SentimentLog {
+  id              String   @id @default(uuid())
+  businessId      String
+  customerId      String
+  conversationId  String?
+  
+  // Sentiment Data
+  sentiment       String   // POSITIVE, NEGATIVE, NEUTRAL
+  score           Decimal  @db.Decimal(4, 3) // -1 to 1
+  confidence      Decimal  @db.Decimal(4, 3)
+  
+  // Context
+  channel         Channel?
+  messageContent  String?  @db.Text
+  alertTriggered  Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([businessId, createdAt])
+  @@index([customerId, createdAt])
+  @@index([sentiment, createdAt])
+  @@map("sentiment_logs")
+}
+
+model IntentLog {
+  id              String   @id @default(uuid())
+  businessId      String
+  customerId      String
+  conversationId  String?
+  
+  // Intent Data
+  intent          String
+  confidence      Decimal  @db.Decimal(4, 3)
+  entities        Json?
+  urgency         Int      @default(0) // 0-10
+  
+  // Context
+  channel         Channel?
+  messageContent  String?  @db.Text
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([businessId, createdAt])
+  @@index([customerId, createdAt])
+  @@index([intent, createdAt])
+  @@map("intent_logs")
 }
 
 // ============================================
@@ -452,6 +792,10 @@ enum AuditAction {
   CUSTOMER_VERIFIED
   CUSTOMER_BLOCKED
   CUSTOMER_UNBLOCKED
+  
+  BUSINESS_CREATED
+  BUSINESS_UPDATED
+  BUSINESS_DELETED
   
   CONVERSATION_CREATED
   CONVERSATION_CLOSED
@@ -485,6 +829,7 @@ model AuditLog {
   timestamp     DateTime      @default(now())
   
   // Actors
+  businessId    String?
   customerId    String?
   adminId       String?       // Clerk user ID for admin actions
   
@@ -502,6 +847,7 @@ model AuditLog {
   // Metadata
   metadata      Json?
   
+  @@index([businessId, timestamp])
   @@index([customerId, timestamp])
   @@index([adminId, timestamp])
   @@index([action, timestamp])

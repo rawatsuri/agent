@@ -1,83 +1,125 @@
-# Render Blueprint - Backend Only
-# Deploys only the Node.js API and Python Voice Bridge
+# Render Blueprint - Omnichannel AI Platform
+# Uses external Supabase for PostgreSQL
 
 services:
-  # 1. Node.js Backend API Service
+  # Node.js Backend API Service
   - type: web
     name: omnichannel-ai-api
     runtime: node
+    plan: standard
+    region: singapore  # Closest to India
     buildCommand: chmod +x render-build.sh && ./render-build.sh
     startCommand: chmod +x render-start.sh && ./render-start.sh
+    healthCheckPath: /health
+    autoDeploy: true
     envVars:
+      # Core
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
+      - key: LOG_LEVEL
+        value: info
+      
+      # Database (Supabase - set manually in Render dashboard)
       - key: DATABASE_URL
-        fromDatabase:
-          name: omnichannel-ai-db
-          property: connectionString
+        sync: false  # Set in Render dashboard
+      - key: DIRECT_URL
+        sync: false  # Set in Render dashboard
+      
+      # Redis (Render managed)
       - key: REDIS_URL
         fromService:
           type: redis
           name: omnichannel-ai-redis
           property: connectionString
-      - key: OPENAI_API_KEY
-        sync: false
+      
+      # Authentication (Clerk)
       - key: CLERK_SECRET_KEY
         sync: false
       - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      
+      # AI Services
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: AZURE_SPEECH_KEY
+        sync: false
+      - key: AZURE_SPEECH_REGION
+        sync: false
+      
+      # Telephony (Exotel)
+      - key: EXOTEL_SID
         sync: false
       - key: EXOTEL_API_KEY
         sync: false
       - key: EXOTEL_API_TOKEN
         sync: false
-      - key: EXOTEL_SID
-        sync: false
+      
+      # Email (SendGrid)
       - key: SENDGRID_API_KEY
         sync: false
+      - key: SENDGRID_FROM_EMAIL
+        sync: false
+      
+      # Social (Meta WhatsApp/Instagram)
       - key: META_APP_ID
         sync: false
       - key: META_APP_SECRET
         sync: false
       - key: META_ACCESS_TOKEN
         sync: false
+      - key: META_VERIFY_TOKEN
+        sync: false
       - key: WHATSAPP_PHONE_NUMBER_ID
         sync: false
+      
+      # Telegram
       - key: TELEGRAM_BOT_TOKEN
         sync: false
-      - key: AZURE_SPEECH_KEY
-        sync: false
-      - key: AZURE_SPEECH_REGION
-        sync: false
-      - key: VOICE_BRIDGE_URL
-        fromService:
-          type: web
-          name: omnichannel-ai-voice
-          property: host
+      
+      # Security
       - key: INTERNAL_API_KEY
         sync: false
-    healthCheckPath: /health
-    autoDeploy: true
-    plan: standard
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      
+      # CORS
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: WHITE_LIST_URLS
+        sync: false
+      
+      # Voice Bridge URL (if deployed)
+      - key: VOICE_BRIDGE_URL
+        sync: false
 
-  # 2. Python Voice Bridge Service
+  # Python Voice Bridge Service (Optional)
   - type: web
     name: omnichannel-ai-voice
     runtime: python
-    buildCommand: chmod +x voice-bridge/render-build.sh && ./voice-bridge/render-build.sh
-    startCommand: chmod +x voice-bridge/render-start.sh && ./voice-bridge/render-start.sh
+    plan: standard
+    region: singapore
+    rootDir: voice-bridge
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    healthCheckPath: /health
+    autoDeploy: true
     envVars:
-      - key: PYTHONPATH
-        value: .
       - key: PORT
         value: 10000
+      - key: PYTHONPATH
+        value: .
       - key: NODE_API_URL
         fromService:
           type: web
           name: omnichannel-ai-api
           property: host
       - key: INTERNAL_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
         sync: false
       - key: AZURE_TTS_KEY
         sync: false
@@ -89,27 +131,12 @@ services:
         sync: false
       - key: EXOTEL_SID
         sync: false
-      - key: OPENAI_API_KEY
-        sync: false
       - key: DEEPGRAM_API_KEY
         sync: false
-      - key: WHISPER_MODEL
-        value: base
-    healthCheckPath: /health
-    autoDeploy: true
-    plan: standard
 
-databases:
-  # PostgreSQL Database
-  - name: omnichannel-ai-db
-    databaseName: omnichannel_ai
-    user: omnichannel_ai_user
-    plan: standard
-    postgresMajorVersion: 15
-    ipAllowList: []
-
-  # Redis for caching and queues
+# Redis for caching and queues (Render managed)
   - type: redis
     name: omnichannel-ai-redis
     plan: starter
+    region: singapore
     ipAllowList: []

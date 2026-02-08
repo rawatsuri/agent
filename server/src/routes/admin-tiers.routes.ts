@@ -14,7 +14,7 @@ const router = express.Router();
 router.get('/business/:id/tier', authenticateAdmin, async (req, res) => {
     try {
         const business = await db.business.findUnique({
-            where: { id: req.params.id },
+            where: { id: req.params.id as string },
             select: {
                 id: true,
                 name: true,
@@ -95,7 +95,7 @@ router.patch('/business/:id/tier', authenticateAdmin, async (req, res) => {
         }
 
         const updated = await db.business.update({
-            where: { id: req.params.id },
+            where: { id: req.params.id as string },
             data: {
                 ...(aiModel && { aiModel }),
                 ...(ttsProvider && { ttsProvider }),
@@ -179,7 +179,7 @@ router.post('/business/:id/tier/preset/:preset', authenticateAdmin, async (req, 
         const tierConfig = TIER_PRESETS[preset as keyof typeof TIER_PRESETS];
 
         const updated = await db.business.update({
-            where: { id: req.params.id },
+            where: { id: req.params.id as string },
             data: tierConfig,
             select: {
                 id: true,
@@ -254,7 +254,7 @@ router.get('/tts/:provider/voices', authenticateAdmin, async (req, res) => {
 
     res.json({
         provider,
-        voices: voices[provider] || []
+        voices: voices[(provider as string)] || []
     });
 });
 
@@ -266,7 +266,7 @@ router.get('/tts/:provider/voices', authenticateAdmin, async (req, res) => {
 router.get('/business/:id/voice-provider', authenticateAdmin, async (req, res) => {
     try {
         const business = await db.business.findUnique({
-            where: { id: req.params.id },
+            where: { id: req.params.id as string },
             select: {
                 id: true,
                 name: true,
@@ -334,7 +334,7 @@ router.patch('/business/:id/voice-provider', authenticateAdmin, async (req, res)
         }
 
         const updated = await db.business.update({
-            where: { id: req.params.id },
+            where: { id: req.params.id as string },
             data: {
                 ...(voiceProvider && { voiceProvider }),
                 ...(twilioPhoneNumber !== undefined && { twilioPhoneNumber }),

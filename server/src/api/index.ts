@@ -21,5 +21,5 @@ export { FAQController } from './faq/faq.controller';
 export * from './ai-advanced/ai-advanced.routes';
 export * from './crm/crm.routes';
 export * from './advanced-analytics/advanced-analytics.routes';
-export * from './white-label/white-label.routes';
+
 export * from './advanced-campaigns/advanced-campaigns.routes';

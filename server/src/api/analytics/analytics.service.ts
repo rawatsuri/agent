@@ -511,7 +511,7 @@ export class AnalyticsService {
       totalBlocked,
       totalThrottled,
       byReason: byReason.map((r) => ({
-        reason: r.reason,
+        reason: r.reason || 'Unknown',
         count: r._count.id,
       })),
       trends: trends.map((t) => ({

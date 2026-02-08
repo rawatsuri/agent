@@ -161,7 +161,7 @@ export class ContextBuilderService {
         industry: true,
         phone: true,
         email: true,
-        config: true,
+        aiConfig: true,
       },
     });
 
@@ -175,7 +175,7 @@ export class ContextBuilderService {
       industry: business.industry || undefined,
       phone: business.phone || undefined,
       email: business.email || undefined,
-      config: (business.config as Record<string, any>) || undefined,
+      config: (business.aiConfig as Record<string, any>) || undefined,
     };
   }
 

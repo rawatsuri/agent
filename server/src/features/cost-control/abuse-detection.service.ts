@@ -22,19 +22,19 @@ export class AbuseDetectionService {
       threshold: 5,      // messages
       windowSeconds: 10, // in 10 seconds
     },
-    
+
     // Gibberish detection (basic regex patterns)
     GIBBERISH: {
       minLength: 10,
       maxRatio: 0.7,     // ratio of non-alphanumeric chars
     },
-    
+
     // Repeated questions
     REPETITION: {
       windowMinutes: 60,
       maxRepetitions: 3,
     },
-    
+
     // Geographic anomaly (will integrate with IP geolocation)
     GEO_ANOMALY: {
       enabled: true,
@@ -101,12 +101,12 @@ export class AbuseDetectionService {
 
       // Log if abusive
       if (reasons.length > 0) {
-        await this.logAbuse(params, action, severity, reasons);
+        await this.logAbuse(params, await action as string, severity, reasons);
       }
 
       return {
         isAbusive: reasons.length > 0,
-        action,
+        action: await action,
         reasons,
         severity,
       };
@@ -268,7 +268,7 @@ export class AbuseDetectionService {
     });
 
     const score = Math.min(recentAbuse * 20, 100); // 5+ incidents = bad reputation
-    
+
     // Cache for 1 hour
     await this.redis.setex(`ip:reputation:${ipAddress}`, 3600, score.toString());
 
@@ -296,7 +296,7 @@ export class AbuseDetectionService {
     if (severity === 'HIGH') return 'BLOCK';
     if (severity === 'MEDIUM' && recentAbuseCount >= autoBlockThreshold) return 'BLOCK';
     if (severity === 'MEDIUM') return 'THROTTLE';
-    
+
     return 'ALLOW';
   }
 
@@ -333,7 +333,7 @@ export class AbuseDetectionService {
             message: params.message,
             timestamp: new Date().toISOString(),
           },
-        },
+        } as any,
       });
 
       logger.warn(
@@ -369,9 +369,9 @@ export class AbuseDetectionService {
   private static calculateSimilarity(str1: string, str2: string): number {
     const longer = str1.length > str2.length ? str1 : str2;
     const shorter = str1.length > str2.length ? str2 : str1;
-    
+
     if (longer.length === 0) return 1.0;
-    
+
     const distance = this.levenshteinDistance(longer, shorter);
     return (longer.length - distance) / longer.length;
   }
@@ -431,8 +431,8 @@ export class AbuseDetectionService {
 
     for (const log of logs) {
       byAction[log.action] = (byAction[log.action] || 0) + 1;
-      
-      const reasons = log.reason.split(',');
+
+      const reasons = (log.reason || '').split(',');
       for (const reason of reasons) {
         byReason[reason] = (byReason[reason] || 0) + 1;
       }
@@ -445,7 +445,7 @@ export class AbuseDetectionService {
       recentIncidents: logs.slice(0, 10).map(log => ({
         id: log.id,
         action: log.action,
-        reason: log.reason,
+        reason: log.reason || '',
         createdAt: log.createdAt,
       })),
     };

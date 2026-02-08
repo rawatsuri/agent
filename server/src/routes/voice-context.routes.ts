@@ -81,7 +81,7 @@ router.get('/full-context', async (req, res) => {
             select: {
                 id: true,
                 name: true,
-                config: true,
+                aiConfig: true,
                 aiModel: true,
                 ttsProvider: true,
                 ttsVoiceId: true,
@@ -118,7 +118,7 @@ router.get('/full-context', async (req, res) => {
         ]);
 
         // Build context response
-        const config = (business?.config as any) || {};
+        const config = (business?.aiConfig as any) || {};
 
         const fullContext = {
             customer: {
@@ -157,12 +157,12 @@ router.get('/full-context', async (req, res) => {
         return res.json(fullContext);
 
     } catch (error) {
-        logger.error({ 
+        logger.error({
             error: error instanceof Error ? error.message : error,
             stack: error instanceof Error ? error.stack : undefined,
-            phoneNumber: maskPhone(phoneNumber)
+            phoneNumber: maskPhone(req.query.phoneNumber as string || '')
         }, 'Failed to load full context');
-        return res.status(500).json({ 
+        return res.status(500).json({
             error: 'Failed to load context',
             details: error instanceof Error ? error.message : 'Unknown error'
         });

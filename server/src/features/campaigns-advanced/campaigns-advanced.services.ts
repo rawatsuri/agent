@@ -281,7 +281,7 @@ export class ABTestingService {
                         status: TestStatus.COMPLETED,
                         winner: winner.variant.id,
                         endedAt: new Date(),
-                    },
+                    } as any,
                 });
 
                 logger.info(
@@ -505,7 +505,7 @@ export class PersonalizationService {
         const aiPersonalized = await this.aiPersonalize({
             baseMessage: personalizedMessage,
             customerContext: {
-                name: customer.name,
+                name: customer.name || undefined,
                 tags: customer.tags,
                 preferences: customer.preferences,
                 conversationCount: customer.conversations.length,

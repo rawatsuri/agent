@@ -1,0 +1,32 @@
+﻿src/features/audit/audit-logger.service.ts(125,17): error TS2322: Type 'import("C:/Users/suraj/Desktop/agent/server/src/features/audit/audit-logger.service").AuditAction' is not assignable to type 'import("C:/Users/suraj/Desktop/agent/server/node_modules/.prisma/client/index").$Enums.AuditAction'.
+src/features/audit/audit-logger.service.ts(288,13): error TS18004: No value exists in scope for the shorthand property 'req'. Either declare one or provide an initializer.
+src/features/cache/semantic-cache.service.ts(429,7): error TS2322: Type '{ businessId: string; embeddingHash: string; queryText: string; queryNormalized: string; responseText: string; expiresAt: Date; sourceChannel: $Enums.Channel | undefined; customerId: string | undefined; similarityScore: number; }' is not assignable to type '(Without<ResponseCacheCreateInput, ResponseCacheUncheckedCreateInput> & ResponseCacheUncheckedCreateInput) | (Without<...> & ResponseCacheCreateInput)'.
+  Type '{ businessId: string; embeddingHash: string; queryText: string; queryNormalized: string; responseText: string; expiresAt: Date; sourceChannel: $Enums.Channel | undefined; customerId: string | undefined; similarityScore: number; }' is not assignable to type 'Without<ResponseCacheUncheckedCreateInput, ResponseCacheCreateInput> & ResponseCacheCreateInput'.
+    Type '{ businessId: string; embeddingHash: string; queryText: string; queryNormalized: string; responseText: string; expiresAt: Date; sourceChannel: $Enums.Channel | undefined; customerId: string | undefined; similarityScore: number; }' is not assignable to type 'Without<ResponseCacheUncheckedCreateInput, ResponseCacheCreateInput>'.
+      Types of property 'customerId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'undefined'.
+          Type 'string' is not assignable to type 'undefined'.
+src/features/cache/semantic-cache.service.ts(449,7): error TS2353: Object literal may only specify known properties, and 'response' does not exist in type 'BackgroundFetch<string>'.
+src/features/cache/semantic-cache.service.ts(465,17): error TS2339: Property 'expiresAt' does not exist on type 'string'.
+src/features/campaigns-advanced/campaigns-advanced.services.ts(283,25): error TS2353: Object literal may only specify known properties, and 'endedAt' does not exist in type '(Without<ABTestUpdateInput, ABTestUncheckedUpdateInput> & ABTestUncheckedUpdateInput) | (Without<...> & ABTestUpdateInput)'.
+src/features/campaigns-advanced/campaigns-advanced.services.ts(508,17): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/features/cost-control/rate-limiter.service.ts(377,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/middleware/request-tracing.middleware.ts(65,5): error TS2322: Type 'ReqId | null' is not assignable to type 'string | null'.
+  Type 'number' is not assignable to type 'string'.
+src/queue/workers/proactive.worker.ts(89,16): error TS2353: Object literal may only specify known properties, and 'business' does not exist in type 'CampaignInclude<DefaultArgs>'.
+src/queue/workers/proactive.worker.ts(221,42): error TS2339: Property 'checkBudget' does not exist on type 'typeof BudgetService'.
+src/routes/voice-context.routes.ts(163,36): error TS2304: Cannot find name 'phoneNumber'.
+src/security/security-setup.ts(77,18): error TS2339: Property 'auth' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+src/services/ai-orchestrator/prompt-builder.service.ts(45,68): error TS2345: Argument of type 'boolean | undefined' is not assignable to parameter of type 'boolean'.
+  Type 'undefined' is not assignable to type 'boolean'.
+src/services/ai-orchestrator/prompt-builder.service.ts(108,18): error TS2339: Property 'industry' does not exist on type '{ id: string; name: string; config?: Record<string, any> | undefined; }'.
+src/services/ai-orchestrator/prompt-builder.service.ts(109,75): error TS2339: Property 'industry' does not exist on type '{ id: string; name: string; config?: Record<string, any> | undefined; }'.
+src/services/ai-orchestrator/prompt-builder.service.ts(134,16): error TS18048: 'customer.trustScore' is possibly 'undefined'.
+src/test/utils.ts(174,7): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/test/utils.ts(175,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/test/utils.ts(178,7): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/test/utils.ts(179,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/test/utils.ts(182,7): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+src/test/utils.ts(183,14): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.

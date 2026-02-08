@@ -39,13 +39,6 @@ export class CampaignController {
           skip,
           take: limit,
           orderBy: { createdAt: 'desc' },
-          include: {
-            _count: {
-              select: {
-                logs: true,
-              },
-            },
-          }, // Added missing closing brace here
         }),
         db.campaign.count({ where }),
       ]);
@@ -135,9 +128,9 @@ export class CampaignController {
           messageTemplate: result.data.messageTemplate,
           aiPersonalized: result.data.aiPersonalized,
           targetFilter: result.data.targetFilter || {},
-          triggerConfig: result.data.triggerConfig || null,
+          triggerConfig: result.data.triggerConfig || undefined,
           status: 'DRAFT',
-        },
+        } as any,
       });
 
       logger.info({ businessId, campaignId: campaign.id }, 'Campaign created');
@@ -165,34 +158,10 @@ export class CampaignController {
   static async getCampaign(req: Request, res: Response): Promise<void> {
     try {
       const businessId = req.business!.id;
-      const campaignId = req.params.id;
+      const campaignId = req.params.id as string;
 
       const campaign = await db.campaign.findFirst({
-        where: { id: campaignId, businessId },
-        include: {
-          _count: {
-            select: {
-              logs: true,
-            },
-          },
-          logs: {
-            take: 10,
-            orderBy: { createdAt: 'desc' },
-            select: {
-              id: true,
-              status: true,
-              errorMessage: true,
-              createdAt: true,
-              customer: {
-                select: {
-                  id: true,
-                  name: true,
-                  phone: true,
-                },
-              },
-            },
-          },
-        },
+        where: { id: campaignId as string, businessId },
       });
 
       if (!campaign) {
@@ -232,11 +201,11 @@ export class CampaignController {
   static async updateCampaign(req: Request, res: Response): Promise<void> {
     try {
       const businessId = req.business!.id;
-      const campaignId = req.params.id;
+      const campaignId = req.params.id as string;
 
       // Verify campaign belongs to business and is not running
       const existingCampaign = await db.campaign.findFirst({
-        where: { id: campaignId, businessId },
+        where: { id: campaignId as string, businessId },
       });
 
       if (!existingCampaign) {
@@ -276,7 +245,7 @@ export class CampaignController {
       }
 
       const campaign = await db.campaign.update({
-        where: { id: campaignId },
+        where: { id: campaignId as string },
         data: updateData,
       });
 
@@ -303,11 +272,11 @@ export class CampaignController {
   static async deleteCampaign(req: Request, res: Response): Promise<void> {
     try {
       const businessId = req.business!.id;
-      const campaignId = req.params.id;
+      const campaignId = req.params.id as string;
 
       // Verify campaign belongs to business and is not running
       const existingCampaign = await db.campaign.findFirst({
-        where: { id: campaignId, businessId },
+        where: { id: campaignId as string, businessId },
       });
 
       if (!existingCampaign) {
@@ -322,7 +291,7 @@ export class CampaignController {
 
       // Delete campaign (cascade will delete logs)
       await db.campaign.delete({
-        where: { id: campaignId },
+        where: { id: campaignId as string },
       });
 
       logger.info({ businessId, campaignId }, 'Campaign deleted');
@@ -343,11 +312,11 @@ export class CampaignController {
   static async executeCampaign(req: Request, res: Response): Promise<void> {
     try {
       const businessId = req.business!.id;
-      const campaignId = req.params.id;
+      const campaignId = req.params.id as string;
 
       // Verify campaign belongs to business
       const campaign = await db.campaign.findFirst({
-        where: { id: campaignId, businessId },
+        where: { id: campaignId as string, businessId },
       });
 
       if (!campaign) {
@@ -376,7 +345,7 @@ export class CampaignController {
 
       // Update status to running
       await db.campaign.update({
-        where: { id: campaignId },
+        where: { id: campaignId as string },
         data: { status: 'RUNNING' },
       });
 
@@ -403,11 +372,11 @@ export class CampaignController {
   static async getCampaignStats(req: Request, res: Response): Promise<void> {
     try {
       const businessId = req.business!.id;
-      const campaignId = req.params.id;
+      const campaignId = req.params.id as string;
 
       // Verify campaign belongs to business
       const campaign = await db.campaign.findFirst({
-        where: { id: campaignId, businessId },
+        where: { id: campaignId as string, businessId },
       });
 
       if (!campaign) {

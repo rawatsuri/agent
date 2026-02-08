@@ -78,8 +78,8 @@ async function processDailyReport(jobId: string, data: CostReportJobData): Promi
 
   // Get all active businesses if no specific business
   const businesses = businessId
-    ? await db.business.findMany({ where: { id: businessId, active: true } })
-    : await db.business.findMany({ where: { active: true } });
+    ? await db.business.findMany({ where: { id: businessId, isActive: true } })
+    : await db.business.findMany({ where: { isActive: true } });
 
   logger.info({ jobId, businessCount: businesses.length }, 'Generating daily cost reports');
 
@@ -163,8 +163,8 @@ async function processWeeklyReport(jobId: string, data: CostReportJobData): Prom
   const { businessId, emailRecipients } = data;
 
   const businesses = businessId
-    ? await db.business.findMany({ where: { id: businessId, active: true } })
-    : await db.business.findMany({ where: { active: true } });
+    ? await db.business.findMany({ where: { id: businessId, isActive: true } })
+    : await db.business.findMany({ where: { isActive: true } });
 
   logger.info({ jobId, businessCount: businesses.length }, 'Generating weekly cost reports');
 
@@ -227,8 +227,8 @@ async function processMonthlyReport(jobId: string, data: CostReportJobData): Pro
   const { businessId, emailRecipients } = data;
 
   const businesses = businessId
-    ? await db.business.findMany({ where: { id: businessId, active: true } })
-    : await db.business.findMany({ where: { active: true } });
+    ? await db.business.findMany({ where: { id: businessId, isActive: true } })
+    : await db.business.findMany({ where: { isActive: true } });
 
   logger.info({ jobId, businessCount: businesses.length }, 'Generating monthly cost reports');
 

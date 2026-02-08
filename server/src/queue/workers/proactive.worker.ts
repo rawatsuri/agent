@@ -24,7 +24,7 @@ import { getProactiveCampaignQueue } from '../queue.config';
  */
 export const startProactiveCampaignWorker = (): Worker => {
   const options = getDefaultWorkerOptions();
-  
+
   const worker = new Worker(
     QUEUE_NAMES.PROACTIVE_CAMPAIGNS,
     async (job: Job) => {
@@ -86,7 +86,6 @@ async function processExecuteCampaign(jobId: string, data: ExecuteCampaignJobDat
   // Get campaign details
   const campaign = await db.campaign.findUnique({
     where: { id: campaignId },
-    include: { business: true },
   });
 
   if (!campaign) {
@@ -218,7 +217,7 @@ async function processSendCampaignMessage(
 
   try {
     // Check budget before sending
-    const canSpend = await BudgetService.checkBudget(businessId, 0.01); // Estimate 1 cent per message
+    const canSpend = await BudgetService.hasBudgetAvailable(businessId, 0.01); // Estimate 1 cent per message
     if (!canSpend.allowed) {
       logger.warn({ jobId, campaignId, customerId }, 'Budget exceeded, skipping campaign message');
 
@@ -382,7 +381,7 @@ async function personalizeMessage(
     // Get business details for context
     const business = await db.business.findUnique({
       where: { id: businessId },
-      select: { name: true, config: true },
+      select: { name: true, aiConfig: true },
     });
 
     const context = await AIService.buildContext(

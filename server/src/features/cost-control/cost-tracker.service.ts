@@ -40,7 +40,7 @@ export class CostTrackerService {
           model: params.model,
           channel: params.channel,
           metadata: params.metadata as Prisma.InputJsonValue,
-        },
+        } as any,
       });
 
       // Also update the business credit tracking
@@ -84,7 +84,7 @@ export class CostTrackerService {
           durationSeconds: params.durationSeconds,
           channel: params.channel,
           metadata: params.metadata as Prisma.InputJsonValue,
-        },
+        } as any,
       });
 
       await this.updateBusinessSpend(params.businessId, params.cost);

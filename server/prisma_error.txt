@@ -1,0 +1,32 @@
+﻿npx : Environment 
+variables loaded from .env
+At line:1 char:1
++ npx prisma generate 
+2>&1 | Out-File -FilePath 
+prisma_error.txt -Encod 
+...
++ ~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (E  
+  nvironment variables    
+ loaded from .env:Stri    
+ng) [], RemoteExcepti    
+on
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+Prisma schema loaded from prisma\schema.prisma
+Error: 
+Cannot find module 'C:\Use
+rs\suraj\Desktop\agent\ser
+ver\node_modules\@prisma\c
+lient\runtime\query_engine
+_bg.postgresql.wasm-base64
+.js'
+Require stack:
+- C:\Users\suraj\Desktop\a
+gent\server\node_modules\p
+risma\build\index.js
+
+

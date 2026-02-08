@@ -231,7 +231,7 @@ Message: "${params.message}"`;
                     sentiment: params.sentiment,
                     confidence: params.confidence,
                     score: params.score,
-                },
+                } as any,
             });
         } catch (error) {
             logger.error({ error, params }, 'Failed to log sentiment');
@@ -577,7 +577,7 @@ Customer message: "${params.message}"`;
                     intent: params.intent,
                     confidence: params.confidence,
                     urgency: params.urgency,
-                },
+                } as any,
             });
         } catch (error) {
             logger.error({ error, params }, 'Failed to log intent');

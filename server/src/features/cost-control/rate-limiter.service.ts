@@ -119,7 +119,7 @@ export class RateLimiterService {
       if (type === 'MESSAGE' && limits.messageCooldownSeconds > 0) {
         const cooldownKey = `cooldown:${customerId}:message`;
         const cooldownTtl = await this.redis.ttl(cooldownKey);
-        
+
         if (cooldownTtl > 0) {
           return {
             allowed: false,
@@ -198,10 +198,10 @@ export class RateLimiterService {
       }
 
       const key = `${this.KEY_PREFIX.BUSINESS_MONTHLY}:${businessId}:${type.toLowerCase()}`;
-      
+
       // Check monthly counter
       const currentCount = await this.getMonthlyCounter(key);
-      
+
       if (currentCount >= quota) {
         await this.logRateLimitHit({
           businessId,
@@ -379,8 +379,8 @@ export class RateLimiterService {
           actionTaken: params.actionTaken,
           hitCount: params.hitCount,
           limitValue: params.limitValue,
-          ipAddress: params.ipAddress,
-        },
+          ipAddress: params.ipAddress || '',
+        } as any,
       });
     } catch (error) {
       logger.error({ error, params }, 'Failed to log rate limit hit');

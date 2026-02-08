@@ -13,7 +13,7 @@ const router = express.Router();
 router.get('/business/:id', authenticateAdmin, async (req, res) => {
     try {
         const business = await db.business.findUnique({
-            where: { id: req.params.id },
+            where: { id: req.params.id as string },
             select: {
                 id: true,
                 name: true,
@@ -21,7 +21,7 @@ router.get('/business/:id', authenticateAdmin, async (req, res) => {
                 phone: true,
                 industry: true,
                 enabledChannels: true,
-                active: true,
+                isActive: true,
                 createdAt: true,
                 credits: {
                     select: {
@@ -70,7 +70,7 @@ router.patch('/business/:id/channels', authenticateAdmin, async (req, res) => {
         }
 
         const updated = await db.business.update({
-            where: { id: req.params.id },
+            where: { id: req.params.id as string },
             data: { enabledChannels },
             select: {
                 id: true,
@@ -161,7 +161,7 @@ router.get('/businesses', authenticateAdmin, async (req, res) => {
                 name: true,
                 email: true,
                 enabledChannels: true,
-                active: true,
+                isActive: true,
                 createdAt: true,
                 credits: {
                     select: {
@@ -172,7 +172,6 @@ router.get('/businesses', authenticateAdmin, async (req, res) => {
                 _count: {
                     select: {
                         customers: true,
-                        conversations: true
                     }
                 }
             },
@@ -195,10 +194,10 @@ router.get('/businesses', authenticateAdmin, async (req, res) => {
 router.post('/business/:id/channels/:channel/enable', authenticateAdmin, async (req, res) => {
     try {
         const { id, channel } = req.params;
-        const channelUpper = channel.toUpperCase();
+        const channelUpper = (channel as string).toUpperCase();
 
         const business = await db.business.findUnique({
-            where: { id },
+            where: { id: id as string },
             select: { enabledChannels: true, name: true }
         });
 
@@ -214,9 +213,9 @@ router.post('/business/:id/channels/:channel/enable', authenticateAdmin, async (
         }
 
         const updated = await db.business.update({
-            where: { id },
+            where: { id: id as string },
             data: {
-                enabledChannels: [...business.enabledChannels, channelUpper]
+                enabledChannels: [...business.enabledChannels, channelUpper] as any
             },
             select: { id: true, name: true, enabledChannels: true }
         });
@@ -241,10 +240,10 @@ router.post('/business/:id/channels/:channel/enable', authenticateAdmin, async (
 router.post('/business/:id/channels/:channel/disable', authenticateAdmin, async (req, res) => {
     try {
         const { id, channel } = req.params;
-        const channelUpper = channel.toUpperCase();
+        const channelUpper = (channel as string).toUpperCase();
 
         const business = await db.business.findUnique({
-            where: { id },
+            where: { id: id as string },
             select: { enabledChannels: true, name: true }
         });
 
@@ -253,7 +252,7 @@ router.post('/business/:id/channels/:channel/disable', authenticateAdmin, async 
         }
 
         const updated = await db.business.update({
-            where: { id },
+            where: { id: id as string },
             data: {
                 enabledChannels: business.enabledChannels.filter(ch => ch !== channelUpper)
             },

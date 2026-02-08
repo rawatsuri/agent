@@ -48,7 +48,7 @@ export class AIService {
                     select: {
                         id: true,
                         name: true,
-                        config: true,
+                        aiConfig: true,
                     },
                 }),
                 MemoryService.getRecentContext(conversationId, 10),
@@ -82,7 +82,7 @@ export class AIService {
             business: {
                 id: business.id,
                 name: business.name,
-                config: (business.config as any) || undefined,
+                config: (business.aiConfig as any) || undefined,
             },
         };
     }

@@ -26,7 +26,7 @@
 | **AI Advanced** | 7/7 | ✅ Complete | `swagger-docs-advanced.ts` |
 | **CRM** | 8/8 | ✅ Complete | `swagger-docs-crm.ts` |
 | **Advanced Analytics** | 10/10 | ✅ Complete | `swagger-docs-analytics.ts` |
-| **White-Label** | 14/14 | ✅ Complete | `swagger-docs-whitelabel.ts` |
+
 | **Advanced Campaigns** | 7/7 | ✅ Complete | `swagger-docs-campaigns.ts` |
 | **Audit** | 5/5 | ✅ Complete | `swagger-docs-audit.ts` |
 
@@ -162,25 +162,7 @@
 ✅ GET    /api/advanced-analytics/engagement      - Engagement metrics
 ```
 
-### 11. White-Label (14 endpoints)
-```
-✅ GET    /api/white-label/branding              - Get branding settings
-✅ PUT    /api/white-label/branding              - Update branding
-✅ POST   /api/white-label/branding/logo         - Upload logo
-✅ GET    /api/white-label/branding/logo         - Get logo
-✅ POST   /api/white-label/branding/css          - Update custom CSS
-✅ GET    /api/white-label/branding/templates    - Get email templates
-✅ PUT    /api/white-label/branding/templates    - Update templates
-✅ GET    /api/white-label/domains               - List custom domains
-✅ POST   /api/white-label/domains               - Add custom domain
-✅ GET    /api/white-label/domains/:id           - Get domain details
-✅ DELETE /api/white-label/domains/:id           - Remove domain
-✅ POST   /api/white-label/domains/:id/verify    - Verify domain
-✅ POST   /api/white-label/domains/:id/ssl       - Provision SSL
-✅ GET    /api/white-label/widget                - Get chat widget config
-```
-
-### 12. Advanced Campaigns (7 endpoints)
+### 11. Advanced Campaigns (7 endpoints)
 ```
 ✅ GET    /api/advanced-campaigns/ab-tests       - List A/B tests
 ✅ POST   /api/advanced-campaigns/ab-tests       - Create A/B test
@@ -191,7 +173,7 @@
 ✅ POST   /api/advanced-campaigns/personalization/rules - Add rule
 ```
 
-### 13. Audit & Compliance (5 endpoints)
+### 12. Audit & Compliance (5 endpoints)
 ```
 ✅ GET    /api/audit/logs                        - Query audit logs
 ✅ GET    /api/audit/logs/:id                    - Get specific log
@@ -200,7 +182,7 @@
 ✅ GET    /api/audit/compliance/report           - Compliance report
 ```
 
-### 14. Webhook Endpoints (11 endpoints)
+### 13. Webhook Endpoints (11 endpoints)
 ```
 ✅ POST   /webhooks/exotel/voice                 - Exotel voice webhook
 ✅ POST   /webhooks/exotel/voice/status          - Call status updates
@@ -215,7 +197,7 @@
 ✅ POST   /webhooks/telegram                     - Telegram updates
 ```
 
-### 15. Agent API (1 endpoint)
+### 14. Agent API (1 endpoint)
 ```
 ✅ POST   /api/agent/process                     - Process AI message
 ```
@@ -226,7 +208,7 @@
 
 | Category | Count | Status |
 |----------|-------|--------|
-| **Total Endpoints** | **85+** | ✅ 100% Documented |
+| **Total Endpoints** | **71+** | ✅ 100% Documented |
 | **GET Endpoints** | 52 | ✅ Complete |
 | **POST Endpoints** | 44 | ✅ Complete |
 | **PUT Endpoints** | 10 | ✅ Complete |
