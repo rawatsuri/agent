@@ -72,6 +72,44 @@ app.add_middleware(
 app.include_router(exotel_adapter.get_webhook_routes())
 
 
+# Direct route for Exotel webhook (ensure it works)
+@app.get("/webhooks/exotel/voice")
+@app.post("/webhooks/exotel/voice")
+async def direct_exotel_voice(request):
+    """Direct webhook handler for Exotel"""
+    try:
+        # Get params
+        if request.method == "GET":
+            params = dict(request.query_params)
+        else:
+            params = dict(await request.form())
+        
+        call_sid = params.get("CallSid") or f"call_{int(time.time())}"
+        from_number = params.get("From") or params.get("CallFrom", "unknown")
+        
+        logger.info(f"📞 Webhook received! Call: {call_sid} from {from_number}")
+        
+        # Return simple TwiML
+        twiml = """<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Say>Hello! This is a test. The system is working.</Say>
+    <Hangup/>
+</Response>"""
+        
+        return PlainTextResponse(content=twiml, media_type="application/xml")
+        
+    except Exception as e:
+        logger.error(f"Webhook error: {e}")
+        return PlainTextResponse(
+            content="""<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Say>Error occurred. Please try again.</Say>
+    <Hangup/>
+</Response>""",
+            media_type="application/xml"
+        )
+
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
