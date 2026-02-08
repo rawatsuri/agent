@@ -34,20 +34,34 @@ def mask_phone(phone: str) -> str:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan context manager"""
+    logger.info("=" * 60)
     logger.info("🚀 Voice Bridge starting up...")
+    logger.info("=" * 60)
     logger.info(f"Environment: development")
     logger.info(f"Node.js API URL: https://agent-3-hkgc.onrender.com")
-    
+
+    # Log all registered routes
+    logger.info("📋 Registered Routes:")
+    for route in app.routes:
+        path = getattr(route, "path", str(route))
+        methods = list(getattr(route, "methods", []))
+        if methods and path:
+            logger.info(f"   {methods} {path}")
+
     # Test Node.js API connection
     try:
         health = await node_api_client.health_check()
         logger.info(f"✅ Node.js API connection: {health.get('status', 'ok')}")
     except Exception as e:
         logger.warning(f"⚠️  Node.js API health check failed: {e}")
-    
+
+    logger.info("=" * 60)
+
     yield
-    
+
+    logger.info("=" * 60)
     logger.info("🛑 Voice Bridge shutting down...")
+    logger.info("=" * 60)
 
 
 # Create FastAPI app
@@ -69,46 +83,12 @@ app.add_middleware(
 
 
 # Include Exotel routes
-app.include_router(exotel_adapter.get_webhook_routes())
+router = exotel_adapter.get_webhook_routes()
+app.include_router(router)
 
-
-# Direct route for Exotel webhook (ensure it works)
-@app.get("/webhooks/exotel/voice")
-@app.post("/webhooks/exotel/voice")
-async def direct_exotel_voice(request):
-    """Direct webhook handler for Exotel"""
-    try:
-        # Get params
-        if request.method == "GET":
-            params = dict(request.query_params)
-        else:
-            params = dict(await request.form())
-        
-        call_sid = params.get("CallSid") or f"call_{int(time.time())}"
-        from_number = params.get("From") or params.get("CallFrom", "unknown")
-        
-        logger.info(f"📞 Webhook received! Call: {call_sid} from {from_number}")
-        
-        # Return simple TwiML (Exotel format - no voice attribute)
-        twiml = """<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-    <Say>Hello! This is a test. The system is working.</Say>
-    <Pause length="1"/>
-    <Hangup/>
-</Response>"""
-        
-        return PlainTextResponse(content=twiml, media_type="application/xml")
-        
-    except Exception as e:
-        logger.error(f"Webhook error: {e}")
-        return PlainTextResponse(
-            content="""<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-    <Say>Error occurred. Please try again.</Say>
-    <Hangup/>
-</Response>""",
-            media_type="application/xml"
-        )
+logger.info(f"✅ Exotel webhook routes registered")
+logger.info(f"   - GET  /webhooks/exotel/voice")
+logger.info(f"   - POST /webhooks/exotel/voice")
 
 
 @app.get("/health")
@@ -130,5 +110,48 @@ async def root():
     return {
         "service": "Voice Bridge",
         "status": "running",
-        "version": "2.0.0"
+        "version": "2.0.0",
+        "webhook_url": "/webhooks/exotel/voice"
+    }
+
+
+# Debug endpoint to test TwiML directly
+@app.get("/test/twiml")
+@app.post("/test/twiml")
+async def test_twiml(request):
+    """Test endpoint to verify TwiML is being returned correctly"""
+    logger.info(f"🧪 Test endpoint hit: {request.method}")
+
+    twiml = """<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Say>Hello! This is a test. The system is working properly.</Say>
+    <Pause length="2"/>
+    <Say>Thank you for calling. Goodbye.</Say>
+    <Hangup/>
+</Response>"""
+
+    logger.info(f"✅ Returning test TwiML ({len(twiml)} bytes)")
+
+    return PlainTextResponse(
+        content=twiml,
+        media_type="application/xml"
+    )
+
+
+# Debug endpoint to check routes
+@app.get("/debug/routes")
+async def debug_routes():
+    """Debug endpoint to list all registered routes"""
+    routes = []
+    for route in app.routes:
+        routes.append({
+            "path": getattr(route, "path", str(route)),
+            "methods": list(getattr(route, "methods", [])),
+            "name": getattr(route, "name", None)
+        })
+
+    return {
+        "total_routes": len(routes),
+        "routes": routes,
+        "exotel_webhook": "/webhooks/exotel/voice" in [r["path"] for r in routes]
     }
