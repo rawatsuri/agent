@@ -89,10 +89,11 @@ async def direct_exotel_voice(request):
         
         logger.info(f"📞 Webhook received! Call: {call_sid} from {from_number}")
         
-        # Return simple TwiML
+        # Return simple TwiML (Exotel format - no voice attribute)
         twiml = """<?xml version="1.0" encoding="UTF-8"?>
 <Response>
     <Say>Hello! This is a test. The system is working.</Say>
+    <Pause length="1"/>
     <Hangup/>
 </Response>"""
         

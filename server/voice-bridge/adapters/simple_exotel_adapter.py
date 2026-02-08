@@ -45,11 +45,11 @@ class SimpleExotelAdapter:
                     "start_time": time.time()
                 }
                 
-                # Return simple TwiML that speaks a greeting and hangs up
-                # This proves the webhook is working
+                # Return simple TwiML for Exotel (no voice attribute, add pause)
                 twiml = """<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Say voice="alice">Hello! This is a test call. Your AI assistant is being configured. Please call back in a few minutes.</Say>
+    <Say>Hello! This is a test. The system is working.</Say>
+    <Pause length="1"/>
     <Hangup/>
 </Response>"""
                 
