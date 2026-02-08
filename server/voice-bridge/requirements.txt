@@ -8,15 +8,17 @@ pydantic>=2.0.0
 pydantic-settings>=2.0.0
 gunicorn>=23.0.0
 
-# Vocode Core (Open Source)
-vocode==0.1.113
+# Vocode Core (Open Source) - pin to avoid tiktoken dependency
+vocode==0.1.111
+
+# Twilio for telephony
 twilio>=8.0.0
 
-# Speech Recognition (STT) - Using Deepgram instead of Whisper (no Rust needed)
+# Speech Recognition (STT) - Deepgram (cloud, no compilation needed)
 deepgram-sdk>=3.0.0
-numpy>=1.24.0
+numpy>=1.24.0,<2.0.0
 
-# Audio Processing (without pyaudio - not needed for websocket streaming)
+# Audio Processing
 pydub==0.25.1
 soundfile==0.12.1
 
@@ -35,6 +37,7 @@ loguru==0.7.2
 
 # Production
 websockets>=12.0,<13.0
+aiohttp>=3.9.0
 
-# Tiktoken pre-built wheel (for OpenAI token counting)
-tiktoken>=0.5.0
+# OpenAI (for LLM)
+openai>=1.0.0
