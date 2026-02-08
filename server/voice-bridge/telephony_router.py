@@ -7,8 +7,8 @@ from typing import Dict, Any, Optional
 from enum import Enum
 from loguru import logger
 
-from adapters.twilio_adapter import TwilioAdapter
 from adapters.exotel_adapter import ExotelAdapter
+from adapters.twilio_adapter import TwilioAdapter
 
 
 class TelephonyProvider(str, Enum):
@@ -43,14 +43,14 @@ class TelephonyRouter:
     def __init__(self, node_api_client):
         self.node_api_client = node_api_client
         
-        # Initialize adapters
+        # Initialize both adapters - both use Vocode streaming
         self.twilio_adapter = TwilioAdapter(node_api_client)
         self.exotel_adapter = ExotelAdapter(node_api_client)
         
         # Active calls tracking
         self.active_calls: Dict[str, Dict[str, Any]] = {}
         
-        logger.info("📞 TelephonyRouter initialized with Twilio + Exotel support")
+        logger.info("📞 TelephonyRouter initialized with Twilio + Exotel (Vocode streaming)")
     
     def get_adapter(self, provider: TelephonyProvider):
         """Get the appropriate adapter for the provider"""
@@ -163,10 +163,8 @@ class TelephonyRouter:
         
         router = APIRouter()
         
-        # Include Twilio routes
+        # Include both Twilio and Exotel routes
         router.include_router(self.twilio_adapter.get_webhook_routes())
-        
-        # Include Exotel routes
         router.include_router(self.exotel_adapter.get_webhook_routes())
         
         return router

@@ -1,25 +1,39 @@
 # Voice Bridge Dockerfile - Python 3.11 with Vocode
+# Exotel + Vocode streaming integration
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install ALL system dependencies for vocode + audio
+# Install system dependencies for Vocode + audio processing
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Build tools
     build-essential \
     libffi-dev \
+    # Audio libraries required by Vocode/sounddevice
     libsndfile1 \
     libportaudio2 \
     portaudio19-dev \
+    libasound2 \
+    libasound2-dev \
+    # FFmpeg for audio processing
     ffmpeg \
+    # HTTP client
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip for pre-built wheels
+# Set dummy audio driver for headless server
+ENV SDL_AUDIODRIVER=dummy
+ENV PULSE_SERVER=''
+
+# Upgrade pip
 RUN pip install --upgrade pip setuptools wheel
 
 # Copy requirements and install
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Pre-download NLTK data
+RUN python -c "import nltk; nltk.download('punkt', quiet=True)" || true
 
 # Copy application
 COPY . .

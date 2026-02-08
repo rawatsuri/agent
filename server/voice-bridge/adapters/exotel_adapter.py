@@ -1,21 +1,23 @@
 """
-Exotel Adapter for Vocode
-Custom adapter for Exotel telephony (India - cost optimized)
+Exotel Adapter with Vocode Streaming Pipeline
+Uses Vocode's low-latency components (Deepgram STT, ChatGPT Agent, Azure TTS)
+with custom audio adapters for Exotel's format.
+
+Exotel Audio Specs:
+- Format: 16-bit Linear PCM (s16le)
+- Sample Rate: 8kHz (default) or 16kHz (recommended)
+- Channels: Mono
+- Encoding: Base64 in WebSocket JSON frames
 """
 
 import asyncio
-import hashlib
-import hmac
+import base64
+import json
 import time
-from typing import Optional, Dict, Any, Callable
+from typing import Optional, Dict, Any
 from loguru import logger
 
-try:
-    import audioop
-except ImportError:
-    # Python 3.13+ removed audioop, use audioop-lts
-    import audioop_lts as audioop
-
+# Vocode core imports (streaming components - no TelephonyServer needed)
 from vocode.streaming.streaming_conversation import StreamingConversation
 from vocode.streaming.models.transcriber import (
     DeepgramTranscriberConfig,
@@ -27,6 +29,8 @@ from vocode.streaming.models.message import BaseMessage
 from vocode.streaming.transcriber.deepgram_transcriber import DeepgramTranscriber
 from vocode.streaming.agent.chat_gpt_agent import ChatGPTAgent
 from vocode.streaming.synthesizer.azure_synthesizer import AzureSynthesizer
+from vocode.streaming.input_device.base_input_device import BaseInputDevice
+from vocode.streaming.output_device.base_output_device import BaseOutputDevice
 
 from config import settings
 
@@ -38,88 +42,124 @@ def mask_phone_number(phone: str) -> str:
     return phone[:4] + "****" + phone[-2:]
 
 
-def verify_exotel_signature(payload: str, signature: str, api_token: str) -> bool:
-    """Verify Exotel webhook signature"""
-    if not api_token:
-        return True  # Skip in dev if not configured
+class ExotelInputDevice(BaseInputDevice):
+    """
+    Custom input device for Exotel WebSocket audio.
+    Receives base64-encoded 16-bit PCM from Exotel.
+    """
+    
+    def __init__(self, sampling_rate: int = 16000):
+        super().__init__(sampling_rate=sampling_rate, chunk_size=3200)  # 100ms chunks
+        self.audio_queue: asyncio.Queue = asyncio.Queue()
+        self._is_active = True
+    
+    async def get_audio(self) -> bytes:
+        """Get audio chunk for Vocode transcriber"""
+        try:
+            return await asyncio.wait_for(self.audio_queue.get(), timeout=1.0)
+        except asyncio.TimeoutError:
+            # Return silence if no audio
+            return b"\x00" * self.chunk_size
+    
+    async def receive_audio(self, base64_audio: str):
+        """Receive base64-encoded audio from Exotel and queue it"""
+        if not self._is_active:
+            return
+        try:
+            audio_bytes = base64.b64decode(base64_audio)
+            await self.audio_queue.put(audio_bytes)
+        except Exception as e:
+            logger.error(f"Error decoding Exotel audio: {e}")
+    
+    def stop(self):
+        """Stop receiving audio"""
+        self._is_active = False
 
-    expected = hmac.new(
-        api_token.encode(), payload.encode(), hashlib.sha256
-    ).hexdigest()
 
-    return hmac.compare_digest(expected, signature)
-
-
-class ExotelAudioInput:
-    """Adapter for Exotel's 8kHz mu-law audio to Vocode's expected format"""
-
-    def __init__(self, websocket):
+class ExotelOutputDevice(BaseOutputDevice):
+    """
+    Custom output device for Exotel WebSocket audio.
+    Sends base64-encoded 16-bit PCM to Exotel.
+    """
+    
+    def __init__(self, websocket, sampling_rate: int = 16000):
+        super().__init__(sampling_rate=sampling_rate)
         self.websocket = websocket
-        self.buffer = asyncio.Queue()
-        self.sample_rate = 8000
-
-    async def get_audio(self):
-        """Get audio chunk, converting from mu-law to PCM if needed"""
-        chunk = await self.buffer.get()
-
-        # Convert mu-law to linear PCM
-        pcm_chunk = audioop.ulaw2lin(chunk, 2)
-
-        # Upsample 8kHz to 16kHz for Vocode/Deepgram
-        pcm_16k = audioop.ratecv(pcm_chunk, 2, 1, 8000, 16000, None)[0]
-
-        return pcm_16k
-
-    async def receive_audio(self, data: bytes):
-        """Receive audio from Exotel WebSocket"""
-        await self.buffer.put(data)
-
-
-class ExotelAudioOutput:
-    """Adapter for Vocode output to Exotel's 8kHz mu-law format"""
-
-    def __init__(self, websocket):
-        self.websocket = websocket
-        self.sample_rate = 8000
-
-    async def send_audio(self, pcm_data: bytes):
-        """Convert and send audio to Exotel"""
-        # Downsample 16kHz/24kHz to 8kHz
-        pcm_8k = audioop.ratecv(pcm_data, 2, 1, 16000, 8000, None)[0]
-
-        # Convert PCM to mu-law
-        mulaw_data = audioop.lin2ulaw(pcm_8k, 2)
-
-        # Send to Exotel via WebSocket
-        await self.websocket.send_bytes(mulaw_data)
+        self._is_active = True
+    
+    async def play(self, audio: bytes):
+        """Send audio to Exotel via WebSocket"""
+        if not self._is_active or not audio:
+            return
+        
+        try:
+            # Chunk audio into 100ms pieces (3200 bytes at 16kHz, 16-bit)
+            chunk_size = 3200
+            for i in range(0, len(audio), chunk_size):
+                if not self._is_active:
+                    break
+                    
+                chunk = audio[i:i + chunk_size]
+                encoded = base64.b64encode(chunk).decode("utf-8")
+                
+                # Send in Exotel's expected format
+                message = {
+                    "event": "media",
+                    "media": {
+                        "payload": encoded
+                    }
+                }
+                
+                await self.websocket.send_json(message)
+                # Small delay between chunks
+                await asyncio.sleep(0.08)  # ~80ms per chunk
+                
+        except Exception as e:
+            logger.error(f"Error sending audio to Exotel: {e}")
+    
+    def stop(self):
+        """Stop sending audio"""
+        self._is_active = False
+    
+    # Required by BaseOutputDevice
+    async def start(self):
+        pass
+    
+    async def terminate(self):
+        self.stop()
 
 
 class ExotelAdapter:
     """
-    Exotel adapter with Vocode's streaming pipeline.
+    Exotel adapter using Vocode's streaming pipeline.
     Provides low-latency voice calls for India (cost optimized).
+    
+    Uses:
+    - Vocode's StreamingConversation for orchestration
+    - DeepgramTranscriber for STT (low latency)
+    - ChatGPTAgent for AI responses
+    - AzureSynthesizer for TTS
+    - Custom input/output devices for Exotel audio format
     """
-
+    
     def __init__(self, node_api_client):
         self.node_api_client = node_api_client
-        self.active_calls: Dict[str, Any] = {}
-
-        # Validate Exotel config
-        if not all(
-            [
-                settings.EXOTEL_SID,
-                settings.EXOTEL_API_KEY,
-            ]
-        ):
+        self.active_calls: Dict[str, Dict[str, Any]] = {}
+        
+        # Validate config
+        if not all([settings.EXOTEL_SID, settings.EXOTEL_API_KEY]):
             logger.warning("Exotel credentials not configured")
-
-    def create_agent_config(self, context: Dict[str, Any]) -> ChatGPTAgentConfig:
+        if not settings.DEEPGRAM_API_KEY:
+            logger.warning("Deepgram API key not configured - STT won't work")
+        if not settings.AZURE_SPEECH_KEY:
+            logger.warning("Azure Speech key not configured - TTS won't work")
+    
+    def _create_agent_config(self, context: Dict[str, Any]) -> ChatGPTAgentConfig:
         """Create ChatGPT agent config with business context"""
-
         customer = context.get("customer", {})
         business = context.get("business", {})
         memories = context.get("memories", [])
-
+        
         # Build context-rich system prompt
         system_prompt = f"""You are an AI voice assistant for {business.get("name", "the business")}.
 
@@ -132,129 +172,130 @@ class ExotelAdapter:
         if memories:
             for memory in memories[:5]:
                 system_prompt += f"- {memory.get('content', '')}\n"
-
+        
         # Business instructions
         custom_prompt = business.get("customPrompt", "")
         if custom_prompt:
             system_prompt += f"\n## Business Instructions\n{custom_prompt}\n"
-
+        
         # Voice guidelines
         system_prompt += """
 ## Voice Conversation Guidelines
 - Keep responses SHORT (under 30 words)
 - Use natural, spoken language
-- Ask one question at a time  
+- Ask one question at a time
 - Be warm and friendly
+- If customer speaks Hindi, respond in Hindi
 """
-
+        
         return ChatGPTAgentConfig(
             openai_api_key=settings.OPENAI_API_KEY,
             initial_message=BaseMessage(
                 text=context.get("welcomeMessage", "Hello! How can I help you today?")
             ),
             prompt_preamble=system_prompt,
-            model_name=settings.VOCODE_MODEL_NAME,
+            model_name=settings.VOCODE_MODEL_NAME or "gpt-4o-mini",
             generate_responses=True,
         )
-
-    async def handle_inbound_call(
-        self, call_sid: str, from_number: str, to_number: str, websocket
+    
+    async def start_conversation(
+        self,
+        call_sid: str,
+        from_number: str,
+        to_number: str,
+        websocket,
     ) -> StreamingConversation:
         """
-        Handle incoming Exotel call.
-        Creates Vocode StreamingConversation with audio adapters.
+        Start a Vocode StreamingConversation for an Exotel call.
         """
-        # Log with masked phone (GDPR compliance)
-        logger.info(
-            f"📞 Incoming Exotel call: {call_sid} from {mask_phone_number(from_number)}"
-        )
-
-        # Load full context from Node.js (once at call start)
+        logger.info(f"📞 Starting Vocode conversation for {call_sid} from {mask_phone_number(from_number)}")
+        
+        # Load context from Node.js API
         context = await self.node_api_client.get_full_context(from_number)
-
-        # Create audio adapters for Exotel format
-        audio_input = ExotelAudioInput(websocket)
-        audio_output = ExotelAudioOutput(websocket)
-
-        # Create Vocode StreamingConversation
+        
+        # Create custom input/output devices for Exotel
+        input_device = ExotelInputDevice(sampling_rate=16000)
+        output_device = ExotelOutputDevice(websocket, sampling_rate=16000)
+        
+        # Create Vocode StreamingConversation with all components
         conversation = StreamingConversation(
-            output_device=audio_output,
+            output_device=output_device,
             transcriber=DeepgramTranscriber(
-                DeepgramTranscriberConfig(
-                    api_key=settings.DEEPGRAM_API_KEY,
+                DeepgramTranscriberConfig.from_input_device(
+                    input_device,
                     endpointing_config=PunctuationEndpointingConfig(),
-                    sampling_rate=16000,  # After upsampling
-                ),
+                    api_key=settings.DEEPGRAM_API_KEY,
+                )
             ),
-            agent=ChatGPTAgent(self.create_agent_config(context)),
+            agent=ChatGPTAgent(self._create_agent_config(context)),
             synthesizer=AzureSynthesizer(
                 AzureSynthesizerConfig(
                     api_key=settings.AZURE_SPEECH_KEY,
                     region=settings.AZURE_SPEECH_REGION,
                     voice_name=context.get("voiceId", settings.AZURE_SPEECH_VOICE),
-                ),
+                    sampling_rate=16000,
+                )
             ),
         )
-
-        # Store call info with start time for duration tracking
+        
+        # Store call info
         self.active_calls[call_sid] = {
             "from_number": from_number,
             "to_number": to_number,
             "context": context,
             "conversation": conversation,
-            "audio_input": audio_input,
+            "input_device": input_device,
+            "output_device": output_device,
             "transcript": [],
-            "start_time": time.time(),  # Track call duration
+            "start_time": time.time(),
         }
-
-        # Create conversation in backend (so transcript can be saved later)
+        
+        # Create conversation record in backend
         await self.node_api_client.create_voice_conversation(
             call_sid=call_sid,
             phone_number=from_number,
             business_id=context.get("business", {}).get("id"),
             customer_id=context.get("customer", {}).get("id"),
         )
-
-        # Start conversation
+        
+        # Start Vocode conversation
         await conversation.start()
-
-        logger.info(f"🚀 Exotel call started with Vocode: {call_sid}")
+        
+        logger.info(f"🚀 Vocode conversation started for {call_sid}")
         return conversation
-
-    async def process_audio(self, call_sid: str, audio_data: bytes):
+    
+    async def process_audio(self, call_sid: str, base64_audio: str):
         """Process incoming audio from Exotel WebSocket"""
         if call_sid not in self.active_calls:
             return
-
-        call_data = self.active_calls[call_sid]
-        audio_input = call_data["audio_input"]
-        conversation = call_data["conversation"]
-
-        # Feed audio to input adapter
-        await audio_input.receive_audio(audio_data)
-
-        # Get converted audio and send to Vocode
-        pcm_audio = await audio_input.get_audio()
-        conversation.receive_audio(pcm_audio)
-
-    async def handle_call_end(self, call_sid: str, duration: int = None):
-        """Handle call end - log async and cleanup"""
+        
+        input_device = self.active_calls[call_sid]["input_device"]
+        await input_device.receive_audio(base64_audio)
+    
+    async def end_call(self, call_sid: str):
+        """End call and cleanup"""
         if call_sid not in self.active_calls:
-            logger.warning(f"Call {call_sid} not found in active calls")
             return
-
+        
         call_data = self.active_calls[call_sid]
-
-        # Calculate duration if not provided
-        if duration is None or duration == 0:
-            duration = int(time.time() - call_data.get("start_time", time.time()))
-
+        duration = int(time.time() - call_data.get("start_time", time.time()))
+        
         try:
-            # Terminate Vocode conversation
-            if call_data.get("conversation"):
-                await call_data["conversation"].terminate()
-
-            # Log cost async (don't block on this)
+            # Stop Vocode conversation
+            conversation = call_data.get("conversation")
+            if conversation:
+                await conversation.terminate()
+            
+            # Stop devices
+            input_device = call_data.get("input_device")
+            if input_device:
+                input_device.stop()
+            
+            output_device = call_data.get("output_device")
+            if output_device:
+                output_device.stop()
+            
+            # Report to backend (async, don't block)
             asyncio.create_task(
                 self.node_api_client.report_call_cost(
                     call_sid=call_sid,
@@ -262,132 +303,121 @@ class ExotelAdapter:
                     phone_number=call_data.get("from_number"),
                 )
             )
-
-            # Save transcript async (don't block on this)
-            if call_data.get("transcript"):
-                asyncio.create_task(
-                    self.node_api_client.save_transcript(
-                        call_sid=call_sid,
-                        transcript=call_data["transcript"],
-                    )
-                )
+            
         except Exception as e:
-            logger.error(f"Error during call cleanup: {e}")
+            logger.error(f"Error ending call: {e}")
         finally:
-            # ALWAYS cleanup to prevent memory leak
             if call_sid in self.active_calls:
                 del self.active_calls[call_sid]
-
-        logger.info(f"📴 Exotel call ended: {call_sid}, duration: {duration}s")
-
+        
+        logger.info(f"📴 Call ended: {call_sid}, duration: {duration}s")
+    
     def get_webhook_routes(self):
         """Return FastAPI routes for Exotel webhooks"""
-        from fastapi import APIRouter, Request, WebSocket, HTTPException
-        from fastapi.responses import PlainTextResponse
-
+        from fastapi import APIRouter, Request, WebSocket
+        from fastapi.responses import JSONResponse
+        
         router = APIRouter(prefix="/exotel", tags=["exotel"])
-
-        async def validate_exotel_signature(request: Request) -> bool:
-            """Validate Exotel webhook signature"""
-            if not settings.EXOTEL_API_TOKEN:
-                return True  # Skip in dev
-
-            signature = request.headers.get("X-Exotel-Signature", "")
-            body = await request.body()
-
-            return verify_exotel_signature(
-                body.decode(), signature, settings.EXOTEL_API_TOKEN
-            )
-
-        @router.api_route("/incoming", methods=["GET", "POST"])
-        async def exotel_incoming(request: Request):
-            """Handle incoming Exotel call webhook - accepts both GET and POST"""
-            # SECURITY: Validate signature (skip for GET in development)
-            if request.method == "POST":
-                if not await validate_exotel_signature(request):
-                    logger.warning("Invalid Exotel signature - rejecting")
-                    raise HTTPException(status_code=403, detail="Invalid signature")
-
-            # Get parameters from query string (GET) or form body (POST)
-            if request.method == "GET":
-                params = request.query_params
-            else:
-                params = await request.form()
-
-            call_sid = params.get("CallSid")
-            from_number = params.get("From")
-            to_number = params.get("To") or params.get("CallTo")
-
-            # Store pending call
-            self.active_calls[call_sid] = {
-                "from_number": from_number,
-                "to_number": to_number,
-                "status": "pending",
-                "start_time": time.time(),
-            }
-
-            # Return response to connect to WebSocket streaming
-            ws_url = f"wss://{settings.BASE_URL}/exotel/stream/{call_sid}"
-
-            return PlainTextResponse(
-                content=f"stream:{ws_url}", media_type="text/plain"
-            )
-
-        @router.websocket("/stream/{call_sid}")
-        async def exotel_stream(websocket: WebSocket, call_sid: str):
-            """WebSocket endpoint for Exotel audio streaming"""
+        
+        @router.websocket("/stream")
+        async def exotel_stream(websocket: WebSocket):
+            """
+            WebSocket endpoint for Exotel Voicebot audio streaming.
+            
+            Configure in Exotel App Bazaar:
+            - Create Voicebot Applet
+            - Set WebSocket URL: wss://your-domain.com/exotel/stream
+            - Connect to your ExoPhone
+            """
             await websocket.accept()
-
-            if call_sid not in self.active_calls:
-                await websocket.close(code=4004, reason="Call not found")
-                return
-
-            call_data = self.active_calls[call_sid]
-
+            logger.info("📞 Exotel WebSocket connected")
+            
+            call_sid = None
+            
             try:
-                # Start Vocode conversation
-                conversation = await self.handle_inbound_call(
-                    call_sid=call_sid,
-                    from_number=call_data["from_number"],
-                    to_number=call_data["to_number"],
-                    websocket=websocket,
-                )
-
-                # Audio processing loop
                 while True:
-                    try:
-                        audio_data = await websocket.receive_bytes()
-                        await self.process_audio(call_sid, audio_data)
-                    except Exception as e:
-                        logger.debug(f"WebSocket receive error: {e}")
+                    message = await websocket.receive()
+                    
+                    if message["type"] == "websocket.disconnect":
                         break
-
+                    
+                    if message["type"] == "websocket.receive":
+                        data = message.get("text")
+                        if data:
+                            try:
+                                json_data = json.loads(data)
+                                event = json_data.get("event")
+                                
+                                if event == "start":
+                                    # Call started - extract metadata
+                                    start_data = json_data.get("start", {})
+                                    call_sid = start_data.get("callSid") or start_data.get("streamSid") or f"exotel_{int(time.time())}"
+                                    
+                                    custom_params = start_data.get("customParameters", {})
+                                    from_number = custom_params.get("from") or start_data.get("from", "")
+                                    to_number = custom_params.get("to") or start_data.get("to", "")
+                                    
+                                    logger.info(f"📞 Call started: {call_sid} from {mask_phone_number(from_number)}")
+                                    
+                                    # Start Vocode conversation
+                                    await self.start_conversation(
+                                        call_sid=call_sid,
+                                        from_number=from_number,
+                                        to_number=to_number,
+                                        websocket=websocket,
+                                    )
+                                    
+                                elif event == "media":
+                                    # Audio data from caller
+                                    if call_sid:
+                                        payload = json_data.get("media", {}).get("payload", "")
+                                        if payload:
+                                            await self.process_audio(call_sid, payload)
+                                            
+                                elif event == "stop":
+                                    # Call ended by Exotel
+                                    logger.info(f"📞 Call stopped by Exotel: {call_sid}")
+                                    break
+                                    
+                                elif event == "mark":
+                                    # Audio playback completed marker
+                                    pass
+                                    
+                            except json.JSONDecodeError:
+                                pass
+                                
             except Exception as e:
-                logger.error(f"Exotel WebSocket error: {e}")
+                logger.error(f"WebSocket error: {e}")
             finally:
-                # ALWAYS cleanup - calculate actual duration
-                if call_sid in self.active_calls:
-                    start_time = self.active_calls[call_sid].get(
-                        "start_time", time.time()
-                    )
-                    duration = int(time.time() - start_time)
-                    await self.handle_call_end(call_sid, duration)
-
+                if call_sid:
+                    await self.end_call(call_sid)
+        
+        @router.get("/health")
+        async def exotel_health():
+            """Health check"""
+            return {
+                "status": "ok",
+                "adapter": "exotel",
+                "vocode": "enabled",
+                "active_calls": len(self.active_calls),
+            }
+        
         @router.post("/status")
         async def exotel_status(request: Request):
             """Handle Exotel call status webhook"""
-            # SECURITY: Validate signature
-            if not await validate_exotel_signature(request):
-                raise HTTPException(status_code=403, detail="Invalid signature")
-
-            form = await request.form()
-            call_sid = form.get("CallSid")
-            status = form.get("Status")
-            duration = int(form.get("Duration") or form.get("CallDuration") or 0)
-
-            if status in ["completed", "no-answer", "busy", "failed"]:
-                await self.handle_call_end(call_sid, duration)
-
-            return {"status": "ok"}
-
+            try:
+                form = await request.form()
+                call_sid = form.get("CallSid")
+                status = form.get("Status")
+                
+                logger.info(f"📊 Call status: {call_sid} - {status}")
+                
+                if status in ["completed", "no-answer", "busy", "failed"]:
+                    await self.end_call(call_sid)
+                
+                return {"status": "ok"}
+            except Exception as e:
+                logger.error(f"Status webhook error: {e}")
+                return {"status": "error"}
+        
         return router
