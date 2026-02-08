@@ -402,6 +402,39 @@ class ExotelAdapter:
                 "active_calls": len(self.active_calls),
             }
         
+        @router.post("/voice")
+        async def exotel_voice(request: Request):
+            """Handle Exotel incoming call webhook (TwiML response)"""
+            try:
+                form = await request.form()
+                call_sid = form.get("CallSid") or form.get("callSid")
+                from_number = form.get("From") or form.get("CallFrom")
+                to_number = form.get("To") or form.get("CallTo")
+                
+                logger.info(f"📞 Incoming call from {mask_phone_number(from_number)} to {mask_phone_number(to_number)}")
+                
+                # For now, return a simple TwiML to connect to the stream
+                # This tells Exotel to connect the call to our WebSocket
+                twiml_response = f"""<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Say>Connecting you to the AI assistant. Please wait.</Say>
+    <Connect>
+        <Stream url="wss://{request.headers.get('host', 'agent-2-zc37.onrender.com')}/exotel/stream" />
+    </Connect>
+</Response>"""
+                
+                from fastapi.responses import PlainTextResponse
+                return PlainTextResponse(content=twiml_response, media_type="application/xml")
+                
+            except Exception as e:
+                logger.error(f"Voice webhook error: {e}")
+                error_twiml = """<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Say>We're sorry, but we cannot connect your call at this time. Please try again later.</Say>
+    <Hangup/>
+</Response>"""
+                return PlainTextResponse(content=error_twiml, media_type="application/xml")
+        
         @router.post("/status")
         async def exotel_status(request: Request):
             """Handle Exotel call status webhook"""
